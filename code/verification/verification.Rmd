@@ -1,0 +1,245 @@
+---
+title: "Verification of chocolate-poop preference effect (Balcetis & Dunning, 2010, study 3b pretest)"
+author: "Ian Hussey"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: paper
+    highlight: breezedark
+    toc: yes
+    toc_float: yes
+---
+
+```{r, include=FALSE}
+
+knitr::opts_chunk$set(message = FALSE,
+                      warning = FALSE)
+
+```
+
+# Dependencies
+
+```{r}
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(scrutiny)
+library(effectsize)
+library(janitor)
+
+```
+
+# Original results
+
+Balcetis & Dunning (2010) Study 3b pretest:
+
+"In a pretest, we confirmed that chocolates were more desirable than feces. A separate group of participants (n = 20) rated how appealing, positive, likeable, attractive, and interesting both objects were. It should come as no surprise that averages across these qualities indicated that the chocolates (M = 5.5) were more desirable than the feces (M = 2.1), paired t(19) = 17.44, p_rep =.99, p ≤.001, d = 4.52."
+
+# 95% CIs on reported Cohen's $d$
+
+Original result did not report confidence intervals, so let's add them.
+
+We'll treat the Cohen's $d$ as a between-subjects Cohen's $d_s$. There are alternatives but we won't try to explore them all.
+
+```{r}
+
+calculate_ci_cohens_d <- function(d, n1, n2, conf.level = 0.95) {
+  # calculate the standard error of Cohen's d
+  se_d <- sqrt((n1 + n2) / (n1 * n2) + d^2 / (2 * (n1 + n2)))
+
+  # degrees of freedom
+  df <- n1 + n2 - 2
+
+  # critical value from the t-distribution
+  alpha <- 1 - conf.level
+  t_crit <- qt(1 - alpha/2, df)
+
+  # confidence interval
+  ci_lower <- d - t_crit * se_d
+  ci_upper <- d + t_crit * se_d
+
+  return(c(ci_lower, ci_upper))
+}
+
+d_value <- 4.52  
+n1 <- n2 <- 20
+
+calculate_ci_cohens_d(d_value, n1, n2) |>
+  round_half_up(2)
+
+```
+
+- Because of the very small sample size, there is a lot of uncertainty around the estimate, even assuming its correct.
+
+# GRIM test applied to reported means
+
+```{r}
+
+min_decimals <- function(x, digits = 2) {
+  sprintf(paste0("%.", digits, "f"), x)
+}
+
+  summary_statistics <- 
+  tibble(
+    label = c("chocolate", "feces"),
+    mean  = c(5.5,         2.1),
+    #sd    = c(XXX,        XXX),  # not reported in paper
+    n     = c(20,          20),
+    items = c(5,           5)  # number of items in the scale use to measure this variable. Article states 5 items: "participants (n = 20) rated how appealing, positive, likeable, attractive, and interesting both objects were"
+  ) |>
+  mutate(x = as.character(min_decimals(mean))) 
+
+# apply GRIM test
+grim_results <- 
+  summary_statistics |>
+  grim_map() 
+
+# print table
+grim_results |>
+  select(label, mean, consistency) |>
+  knitr::kable() |>
+  kableExtra::kable_classic(full_width = FALSE)
+
+# # plot
+# grim_results |>
+#   grim_plot()
+
+```
+
+- Means are GRIM consistent, no errors detected.
+
+# Reproduce Cohen's *d* from reported t-test
+
+Reported result: "paired t(19) = 17.44 ... d = 4.52"
+
+## Assume paired Student's *t*-test
+
+### Reported
+
+```{r}
+
+unrounded_t_value <- 
+  scrutiny::unround("17.44", rounding = "up_or_down", threshold = 5) |>
+  select(reported = x, lower, upper) |>
+  mutate(reported = as.numeric(reported))
+
+t_to_d(t = unrounded_t_value$reported, df_error = 19, paired = TRUE, ci = 0.95, alternative = "two.sided") |>
+  mutate_all(round_half_up, digits = 2)
+
+```
+
+### Unrounded lower value
+
+```{r}
+
+t_to_d(t = unrounded_t_value$lower, df_error = 19, paired = TRUE, ci = 0.95, alternative = "two.sided") |>
+  mutate_all(round_half_up, digits = 2)
+
+```
+
+### Unrounded upper value
+
+```{r}
+
+t_to_d(t = unrounded_t_value$upper, df_error = 19, paired = TRUE, ci = 0.95, alternative = "two.sided") |>
+  mutate_all(round_half_up, digits = 2)
+
+```
+
+## Assume independent Student's *t*-test 
+
+Unlikely but also worth checking.
+
+### Reported
+
+```{r}
+
+t_to_d(t = unrounded_t_value$reported, df_error = 19, paired = FALSE, ci = 0.95, alternative = "two.sided") |>
+  mutate_all(round_half_up, digits = 2)
+
+```
+
+### Unrounded lower value
+
+```{r}
+
+t_to_d(t = unrounded_t_value$lower, df_error = 19, paired = FALSE, ci = 0.95, alternative = "two.sided") |>
+  mutate_all(round_half_up, digits = 2)
+
+```
+
+### Unrounded upper value
+
+```{r}
+
+t_to_d(t = unrounded_t_value$upper, df_error = 19, paired = FALSE, ci = 0.95, alternative = "two.sided") |>
+  mutate_all(round_half_up, digits = 2)
+
+```
+
+## Summary
+
+None of the above can reproduce the reported value of Cohen's $d$ from the reported *t* test ("$d$ = 4.52"). Of course, there are many versions of Cohen's $d$, so this may speak more to the under-reporting of what version was used rather than an error in reporting. Nonetheless, whether under-reported or erroneously reported, both possibilities limit the generalisability of the result.
+
+# Estimate SD
+
+SD is not reported for the two groups, but could be estimated and checked for plausibility. To do this, I'll assume the two SDs are equal.
+
+Cohen's d:
+
+$d = {M1 + M2 \over SD}$
+
+Therefore SD:
+
+$SD = {M1 + M2 \over d}$
+
+```{r}
+
+calculate_pooled_sd <- function(M1, M2, d) {
+  SD = abs(M1 - M2) / d
+  return(SD)
+}
+
+M1 <- 5.5 
+M2 <- 2.1
+d <- 17.44
+
+calculate_pooled_sd(M1, M2, d)
+
+```
+
+## Plot 
+
+Assume normal distributions, ignore impact of rounding on estimation of SD, and assume equal SDs.
+
+```{r}
+
+M1 <- 5.5
+M2 <- 2.1
+SD <- 0.1949541
+
+ggplot(data.frame(x = c(1, 7)), aes(x = x)) +
+  stat_function(fun = dnorm, args = list(mean = M1, sd = SD)) + # chocolate
+  stat_function(fun = dnorm, args = list(mean = M2, sd = SD)) + # poop
+  scale_x_continuous(limits = c(1, 7), breaks = scales::pretty_breaks()) +
+  xlab("Evaluations") +
+  ylab("Density") +
+  theme_linedraw()
+
+```
+
+- Estimated SDs imply quite a narrow normal distribution data generating signal. Perhaps this is due to the averaging of scores across the 5 adjectives. Or, it could possibly be a reporting error. Perhaps we could ask for the data from the original authors?
+
+# Session Info
+
+For reproducibility
+
+```{r}
+
+sessionInfo()
+
+```
+
+
