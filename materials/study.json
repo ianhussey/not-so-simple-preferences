@@ -1,5 +1,43 @@
 {
   "components": {
+    "1": {
+      "id": "1",
+      "type": "lab.html.Page",
+      "items": [
+        {
+          "type": "text",
+          "title": "Thank you!",
+          "content": "Your data have been recorded. Your completion code is XXXXXXXX. Please take note of this and then feel free to close this window. "
+        }
+      ],
+      "scrollTop": true,
+      "submitButtonText": "Continue →",
+      "submitButtonPosition": "hidden",
+      "files": [],
+      "responses": [
+        {
+          "label": "",
+          "event": "",
+          "target": "",
+          "filter": ""
+        }
+      ],
+      "parameters": [
+        {
+          "name": "",
+          "value": "",
+          "type": "string"
+        }
+      ],
+      "messageHandlers": [
+        {
+          "title": "",
+          "message": "",
+          "code": ""
+        }
+      ],
+      "title": "completion"
+    },
     "38": {
       "id": "38",
       "type": "lab.html.Page",
@@ -639,7 +677,8 @@
       "children": [
         "38",
         "51",
-        "50"
+        "50",
+        "1"
       ],
       "parameters": [],
       "plugins": [

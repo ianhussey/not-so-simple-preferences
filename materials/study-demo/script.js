@@ -434,6 +434,26 @@ const study = lab.util.fromObject({
       "parameters": {},
       "messageHandlers": {},
       "title": "self_exclusion"
+    },
+    {
+      "type": "lab.html.Page",
+      "items": [
+        {
+          "type": "text",
+          "title": "Thank you!",
+          "content": "Your data have been recorded. Your completion code is XXXXXXXX. Please take note of this and then feel free to close this window. "
+        }
+      ],
+      "scrollTop": true,
+      "submitButtonText": "Continue →",
+      "submitButtonPosition": "hidden",
+      "files": {},
+      "responses": {
+        "": ""
+      },
+      "parameters": {},
+      "messageHandlers": {},
+      "title": "completion"
     }
   ]
 })
