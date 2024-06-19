@@ -38,6 +38,46 @@
       ],
       "title": "completion"
     },
+    "2": {
+      "id": "2",
+      "type": "lab.html.Page",
+      "items": [
+        {
+          "required": false,
+          "type": "textarea",
+          "label": "Please do not enter any text here.",
+          "help": "This is a bot check; just leave it blank and click \"continue\"!",
+          "name": "bot-check"
+        }
+      ],
+      "scrollTop": true,
+      "submitButtonText": "Continue →",
+      "submitButtonPosition": "right",
+      "files": [],
+      "responses": [
+        {
+          "label": "",
+          "event": "",
+          "target": "",
+          "filter": ""
+        }
+      ],
+      "parameters": [
+        {
+          "name": "",
+          "value": "",
+          "type": "string"
+        }
+      ],
+      "messageHandlers": [
+        {
+          "title": "",
+          "message": "",
+          "code": ""
+        }
+      ],
+      "title": "bot_check"
+    },
     "38": {
       "id": "38",
       "type": "lab.html.Page",
@@ -677,6 +717,7 @@
       "children": [
         "38",
         "51",
+        "2",
         "50",
         "1"
       ],

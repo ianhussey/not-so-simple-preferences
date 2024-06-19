@@ -406,6 +406,28 @@ const study = lab.util.fromObject({
       "type": "lab.html.Page",
       "items": [
         {
+          "required": false,
+          "type": "textarea",
+          "label": "Please do not enter any text here.",
+          "help": "This is a bot check; just leave it blank and click \"continue\"!",
+          "name": "bot-check"
+        }
+      ],
+      "scrollTop": true,
+      "submitButtonText": "Continue →",
+      "submitButtonPosition": "right",
+      "files": {},
+      "responses": {
+        "": ""
+      },
+      "parameters": {},
+      "messageHandlers": {},
+      "title": "bot_check"
+    },
+    {
+      "type": "lab.html.Page",
+      "items": [
+        {
           "required": true,
           "type": "radio",
           "label": "In your honest opinion, should we include your data in our analysis?",
