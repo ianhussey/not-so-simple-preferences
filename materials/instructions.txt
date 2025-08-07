@@ -1,0 +1,1 @@
+Open https://labjs.felixhenninger.com/ in a web browser and upload the .json file.
