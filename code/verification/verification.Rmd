@@ -75,6 +75,10 @@ calculate_ci_cohens_d(d_value, n1, n2) |>
 
 # GRIM test applied to reported means
 
+## N items = 5
+
+Article states: "participants (n = 20) rated how appealing, positive, likeable, attractive, and interesting both objects were"
+
 ```{r}
 
 min_decimals <- function(x, digits = 2) {
@@ -87,7 +91,7 @@ min_decimals <- function(x, digits = 2) {
     mean  = c(5.5,         2.1),
     #sd    = c(XXX,        XXX),  # not reported in paper
     n     = c(20,          20),
-    items = c(5,           5)  # number of items in the scale use to measure this variable. Article states 5 items: "participants (n = 20) rated how appealing, positive, likeable, attractive, and interesting both objects were"
+    items = c(5,           5)  
   ) |>
   mutate(x = as.character(min_decimals(mean))) 
 
@@ -109,6 +113,47 @@ grim_results |>
 ```
 
 - Means are GRIM consistent, no errors detected.
+
+## N items = 14
+
+Materials acquired from authors list 14 items in the scale.
+
+NB this will always find it to be grim consistent as N participants * N items > 100.
+
+```{r}
+
+min_decimals <- function(x, digits = 2) {
+  sprintf(paste0("%.", digits, "f"), x)
+}
+
+  summary_statistics <- 
+  tibble(
+    label = c("chocolate", "feces"),
+    mean  = c(5.5,         2.1),
+    #sd    = c(XXX,        XXX),  # not reported in paper
+    n     = c(20,          20),
+    items = c(14,          14)  
+  ) |>
+  mutate(x = as.character(min_decimals(mean))) 
+
+# apply GRIM test
+grim_results <- 
+  summary_statistics |>
+  grim_map() 
+
+# print table
+grim_results |>
+  select(label, mean, consistency) |>
+  knitr::kable() |>
+  kableExtra::kable_classic(full_width = FALSE)
+
+# # plot
+# grim_results |>
+#   grim_plot()
+
+```
+
+- Means can't be assessed using GRIM 
 
 # Reproduce Cohen's *d* from reported t-test
 
