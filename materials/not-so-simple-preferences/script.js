@@ -9,15 +9,15 @@ const study = lab.util.fromObject({
       "path": undefined
     },
     {
-      "type": "lab.plugins.Transmit",
-      "url": "backend.php",
+      "type": "lab.plugins.Download",
+      "filePrefix": "not-so-simple-preferences",
       "path": undefined
     }
   ],
   "metadata": {
-    "title": "",
+    "title": "not so simple preferences",
     "description": "",
-    "repository": "",
+    "repository": "https:\u002F\u002Fgithub.com\u002Fianhussey\u002Fnot-so-simple-preferences",
     "contributors": ""
   },
   "files": {},
@@ -244,8 +244,8 @@ const study = lab.util.fromObject({
                       "coding": "focused"
                     },
                     {
-                      "label": "Please respond with 7 on this item",
-                      "coding": "attention_check"
+                      "label": "Please respond with 1 on this item",
+                      "coding": "attention_check1"
                     },
                     {
                       "label": "How negative is …",
@@ -344,8 +344,8 @@ const study = lab.util.fromObject({
                       "coding": "focused"
                     },
                     {
-                      "label": "Please respond with 1 on this item",
-                      "coding": "attention_check"
+                      "label": "Please respond with 7 on this item",
+                      "coding": "attention_check2"
                     },
                     {
                       "label": "How negative is …",
@@ -399,6 +399,158 @@ const study = lab.util.fromObject({
               "width": "l"
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "lab.flow.Sequence",
+      "files": {},
+      "responses": {
+        "": ""
+      },
+      "parameters": {},
+      "messageHandlers": {},
+      "title": "other_questions",
+      "content": [
+        {
+          "type": "lab.html.Page",
+          "items": [
+            {
+              "required": true,
+              "type": "likert",
+              "items": [
+                {
+                  "label": "Pedophile",
+                  "coding": "pedophile"
+                },
+                {
+                  "label": "Love",
+                  "coding": "love"
+                },
+                {
+                  "label": "Murder",
+                  "coding": "murder"
+                },
+                {
+                  "coding": "vacation",
+                  "label": "Vacation"
+                },
+                {
+                  "label": "Racist",
+                  "coding": "racist"
+                },
+                {
+                  "label": "Shrewd",
+                  "coding": "shrewd"
+                },
+                {
+                  "label": "Honest",
+                  "coding": "honest"
+                },
+                {
+                  "label": "Dishonest",
+                  "coding": "dishonest"
+                },
+                {
+                  "label": "Please respond with 4 on this item",
+                  "coding": "attention_check3"
+                },
+                {
+                  "label": "McDonalds",
+                  "coding": "mcdonalds"
+                },
+                {
+                  "label": "Burger King",
+                  "coding": "burgerking"
+                },
+                {
+                  "label": "Conservatives",
+                  "coding": "conservatives"
+                },
+                {
+                  "label": "Liberals",
+                  "coding": "liberals"
+                }
+              ],
+              "width": "7",
+              "anchors": [
+                "Very negative",
+                "Negative",
+                "Somewhat negative",
+                "Neutral",
+                "Somewhat positive",
+                "Positive",
+                "Very positive"
+              ],
+              "label": "\u003Ci\u003EPlease respond with how positive or negative you think each of the following are:\u003C\u002Fi\u003E",
+              "name": "other_evaluations",
+              "shuffle": false,
+              "help": ""
+            }
+          ],
+          "scrollTop": true,
+          "submitButtonText": "Continue →",
+          "submitButtonPosition": "right",
+          "files": {},
+          "responses": {
+            "": ""
+          },
+          "parameters": {},
+          "messageHandlers": {},
+          "title": "other_evaluations",
+          "width": "l"
+        },
+        {
+          "type": "lab.html.Page",
+          "items": [
+            {
+              "required": true,
+              "type": "likert",
+              "items": [
+                {
+                  "label": "Girls tend to wear skirts",
+                  "coding": "girls_skirts"
+                },
+                {
+                  "label": "Boys tend to wear skirts",
+                  "coding": "boys_skirts"
+                },
+                {
+                  "label": "Cats have four legs",
+                  "coding": "cats_legs"
+                },
+                {
+                  "label": "Fish have four legs",
+                  "coding": "fish_legs"
+                }
+              ],
+              "width": "7",
+              "anchors": [
+                "Strongly disagree",
+                "Disagree",
+                "Somewhat disagree",
+                "Neutral",
+                "Somewhat agree",
+                "Agree",
+                "Strongly agree"
+              ],
+              "label": "\u003Ci\u003EPlease respond with how much you disagree or agree with the following statements:\u003C\u002Fi\u003E",
+              "name": "other_evaluations",
+              "shuffle": true,
+              "help": ""
+            }
+          ],
+          "scrollTop": true,
+          "submitButtonText": "Continue →",
+          "submitButtonPosition": "right",
+          "files": {},
+          "responses": {
+            "": ""
+          },
+          "parameters": {},
+          "messageHandlers": {},
+          "title": "other_beliefs",
+          "width": "l"
         }
       ]
     },

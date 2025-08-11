@@ -1,0 +1,3 @@
+To run the study online, open https://labjs.felixhenninger.com/ in a web browser and upload the .json file.
+
+To run the study locally, open not-so-simple-preferences/index.html in a web browser. This folder was created by loading the json file on the labjs website and exporting a local copy from the menu. 
