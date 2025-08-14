@@ -83,7 +83,7 @@
       "type": "lab.flow.Sequence",
       "children": [
         "4",
-        "5"
+        "9"
       ],
       "files": [],
       "responses": [
@@ -151,7 +151,7 @@
               "coding": "dishonest"
             },
             {
-              "label": "Please respond with 4 on this item",
+              "label": "Please respond with 'Neutral' on this item",
               "coding": "attention_check3"
             },
             {
@@ -216,8 +216,274 @@
       "title": "other_evaluations",
       "width": "l"
     },
-    "5": {
-      "id": "5",
+    "6": {
+      "id": "6",
+      "type": "lab.flow.Sequence",
+      "children": [
+        "7",
+        "8"
+      ],
+      "files": [],
+      "responses": [
+        {
+          "label": "",
+          "event": "",
+          "target": "",
+          "filter": ""
+        }
+      ],
+      "parameters": [
+        {
+          "name": "",
+          "value": "",
+          "type": "string"
+        }
+      ],
+      "messageHandlers": [
+        {
+          "title": "",
+          "message": "",
+          "code": ""
+        }
+      ],
+      "title": "original_questions"
+    },
+    "7": {
+      "id": "7",
+      "type": "lab.html.Page",
+      "items": [
+        {
+          "required": true,
+          "type": "html",
+          "content": "<div class=\"image-container\"><img src=\"static/poop.jpeg\" class=\"original-header-image\"></div>"
+        },
+        {
+          "required": true,
+          "type": "likert",
+          "items": [
+            {
+              "label": "How much do you like ...",
+              "coding": "like"
+            },
+            {
+              "label": "How attention capturing is …",
+              "coding": "attention_capturing"
+            },
+            {
+              "label": "How unusual is …",
+              "coding": "unusual"
+            },
+            {
+              "label": "How much do you want to figure out what … is?",
+              "coding": "figure_out"
+            },
+            {
+              "label": "How positive is …",
+              "coding": "positive"
+            },
+            {
+              "label": "How fixated are you on …",
+              "coding": "fixtated"
+            },
+            {
+              "label": "How much do you want to look away from …",
+              "coding": "look_away"
+            },
+            {
+              "label": "How focused are you on …",
+              "coding": "focused"
+            },
+            {
+              "label": "Please respond with 1 on this item",
+              "coding": "attention_check1"
+            },
+            {
+              "label": "How negative is …",
+              "coding": "negative"
+            },
+            {
+              "label": "How disgusting is …",
+              "coding": "disgusting"
+            },
+            {
+              "label": "How appealing is …",
+              "coding": "appealing"
+            },
+            {
+              "label": "How eye-catching is …",
+              "coding": "eye-catching"
+            },
+            {
+              "label": "How attractive is …",
+              "coding": "attractive"
+            },
+            {
+              "label": "How much do you want to avoid looking at …",
+              "coding": "avoid_looking"
+            }
+          ],
+          "width": "7",
+          "anchors": [
+            "1 = Not at all",
+            "2",
+            "3",
+            "4 = No opinion",
+            "5",
+            "6",
+            "7 = A lot"
+          ],
+          "label": "<i>Human poop in a toilet bowl</i>",
+          "name": "poop_original"
+        }
+      ],
+      "scrollTop": true,
+      "submitButtonText": "Continue →",
+      "submitButtonPosition": "right",
+      "files": [],
+      "responses": [
+        {
+          "label": "",
+          "event": "",
+          "target": "",
+          "filter": ""
+        }
+      ],
+      "parameters": [
+        {
+          "name": "",
+          "value": "",
+          "type": "string"
+        }
+      ],
+      "messageHandlers": [
+        {
+          "title": "",
+          "message": "",
+          "code": ""
+        }
+      ],
+      "title": "original_poop",
+      "width": "l"
+    },
+    "8": {
+      "id": "8",
+      "type": "lab.html.Page",
+      "items": [
+        {
+          "required": true,
+          "type": "html",
+          "content": "<div class=\"image-container\"><img src=\"static/chocolates.jpeg\" class=\"original-header-image\"></div>"
+        },
+        {
+          "required": true,
+          "type": "likert",
+          "items": [
+            {
+              "label": "How much do you like ...",
+              "coding": "like"
+            },
+            {
+              "label": "How attention capturing is …",
+              "coding": "attention_capturing"
+            },
+            {
+              "label": "How unusual is …",
+              "coding": "unusual"
+            },
+            {
+              "label": "How much do you want to figure out what … is?",
+              "coding": "figure_out"
+            },
+            {
+              "label": "How positive is …",
+              "coding": "positive"
+            },
+            {
+              "label": "How fixated are you on …",
+              "coding": "fixtated"
+            },
+            {
+              "label": "How much do you want to look away from …",
+              "coding": "look_away"
+            },
+            {
+              "label": "How focused are you on …",
+              "coding": "focused"
+            },
+            {
+              "label": "Please respond with 7 on this item",
+              "coding": "attention_check2"
+            },
+            {
+              "label": "How negative is …",
+              "coding": "negative"
+            },
+            {
+              "label": "How disgusting is …",
+              "coding": "disgusting"
+            },
+            {
+              "label": "How appealing is …",
+              "coding": "appealing"
+            },
+            {
+              "label": "How eye-catching is …",
+              "coding": "eye-catching"
+            },
+            {
+              "label": "How attractive is …",
+              "coding": "attractive"
+            },
+            {
+              "label": "How much do you want to avoid looking at …",
+              "coding": "avoid_looking"
+            }
+          ],
+          "width": "7",
+          "anchors": [
+            "1 = Not at all",
+            "2",
+            "3",
+            "4 = No opinion",
+            "5",
+            "6",
+            "7 = A lot"
+          ],
+          "label": "<i>A box of chocolates</i>",
+          "name": "chocolates_original"
+        }
+      ],
+      "scrollTop": true,
+      "submitButtonText": "Continue →",
+      "submitButtonPosition": "right",
+      "files": [],
+      "responses": [
+        {
+          "label": "",
+          "event": "",
+          "target": "",
+          "filter": ""
+        }
+      ],
+      "parameters": [
+        {
+          "name": "",
+          "value": "",
+          "type": "string"
+        }
+      ],
+      "messageHandlers": [
+        {
+          "title": "",
+          "message": "",
+          "code": ""
+        }
+      ],
+      "title": "original_chocolates",
+      "width": "l"
+    },
+    "9": {
+      "id": "9",
       "type": "lab.html.Page",
       "items": [
         {
@@ -252,9 +518,7 @@
             "Strongly agree"
           ],
           "label": "<i>Please respond with how much you disagree or agree with the following statements:</i>",
-          "name": "other_evaluations",
-          "shuffle": true,
-          "help": ""
+          "name": "other_beliefs"
         }
       ],
       "scrollTop": true,
@@ -345,272 +609,6 @@
         }
       ],
       "title": "demographics"
-    },
-    "39": {
-      "id": "39",
-      "type": "lab.html.Page",
-      "items": [
-        {
-          "required": true,
-          "type": "html",
-          "content": "<div class=\"image-container\"><img src=\"static/poop.jpeg\" class=\"original-header-image\"></div>"
-        },
-        {
-          "required": true,
-          "type": "likert",
-          "items": [
-            {
-              "label": "How much do you like ...",
-              "coding": "like"
-            },
-            {
-              "label": "How attention capturing is …",
-              "coding": "attention_capturing"
-            },
-            {
-              "label": "How unusual is …",
-              "coding": "unusual"
-            },
-            {
-              "label": "How much do you want to figure out what … is?",
-              "coding": "figure_out"
-            },
-            {
-              "label": "How positive is …",
-              "coding": "positive"
-            },
-            {
-              "label": "How fixated are you on …",
-              "coding": "fixtated"
-            },
-            {
-              "label": "How much do you want to look away from …",
-              "coding": "look_away"
-            },
-            {
-              "label": "How focused are you on …",
-              "coding": "focused"
-            },
-            {
-              "label": "Please respond with 1 on this item",
-              "coding": "attention_check1"
-            },
-            {
-              "label": "How negative is …",
-              "coding": "negative"
-            },
-            {
-              "label": "How disgusting is …",
-              "coding": "disgusting"
-            },
-            {
-              "label": "How appealing is …",
-              "coding": "appealing"
-            },
-            {
-              "label": "How eye-catching is …",
-              "coding": "eye-catching"
-            },
-            {
-              "label": "How attractive is …",
-              "coding": "attractive"
-            },
-            {
-              "label": "How much do you want to avoid looking at …",
-              "coding": "avoid_looking"
-            }
-          ],
-          "width": "7",
-          "anchors": [
-            "1 = Not at all",
-            null,
-            null,
-            "4 = No opinion",
-            null,
-            null,
-            "7 = A lot"
-          ],
-          "label": "<i>Human poop in a toilet bowl</i>",
-          "name": "poop_original"
-        }
-      ],
-      "scrollTop": true,
-      "submitButtonText": "Continue →",
-      "submitButtonPosition": "right",
-      "files": [],
-      "responses": [
-        {
-          "label": "",
-          "event": "",
-          "target": "",
-          "filter": ""
-        }
-      ],
-      "parameters": [
-        {
-          "name": "",
-          "value": "",
-          "type": "string"
-        }
-      ],
-      "messageHandlers": [
-        {
-          "title": "",
-          "message": "",
-          "code": ""
-        }
-      ],
-      "title": "original_poop",
-      "width": "l"
-    },
-    "40": {
-      "id": "40",
-      "type": "lab.html.Page",
-      "items": [
-        {
-          "required": true,
-          "type": "html",
-          "content": "<div class=\"image-container\"><img src=\"static/chocolates.jpeg\" class=\"original-header-image\"></div>"
-        },
-        {
-          "required": true,
-          "type": "likert",
-          "items": [
-            {
-              "label": "How much do you like ...",
-              "coding": "like"
-            },
-            {
-              "label": "How attention capturing is …",
-              "coding": "attention_capturing"
-            },
-            {
-              "label": "How unusual is …",
-              "coding": "unusual"
-            },
-            {
-              "label": "How much do you want to figure out what … is?",
-              "coding": "figure_out"
-            },
-            {
-              "label": "How positive is …",
-              "coding": "positive"
-            },
-            {
-              "label": "How fixated are you on …",
-              "coding": "fixtated"
-            },
-            {
-              "label": "How much do you want to look away from …",
-              "coding": "look_away"
-            },
-            {
-              "label": "How focused are you on …",
-              "coding": "focused"
-            },
-            {
-              "label": "Please respond with 7 on this item",
-              "coding": "attention_check2"
-            },
-            {
-              "label": "How negative is …",
-              "coding": "negative"
-            },
-            {
-              "label": "How disgusting is …",
-              "coding": "disgusting"
-            },
-            {
-              "label": "How appealing is …",
-              "coding": "appealing"
-            },
-            {
-              "label": "How eye-catching is …",
-              "coding": "eye-catching"
-            },
-            {
-              "label": "How attractive is …",
-              "coding": "attractive"
-            },
-            {
-              "label": "How much do you want to avoid looking at …",
-              "coding": "avoid_looking"
-            }
-          ],
-          "width": "7",
-          "anchors": [
-            "1 = Not at all",
-            null,
-            null,
-            "4 = No opinion",
-            null,
-            null,
-            "7 = A lot"
-          ],
-          "label": "<i>A box of chocolates</i>",
-          "name": "chocolates_original"
-        }
-      ],
-      "scrollTop": true,
-      "submitButtonText": "Continue →",
-      "submitButtonPosition": "right",
-      "files": [],
-      "responses": [
-        {
-          "label": "",
-          "event": "",
-          "target": "",
-          "filter": ""
-        }
-      ],
-      "parameters": [
-        {
-          "name": "",
-          "value": "",
-          "type": "string"
-        }
-      ],
-      "messageHandlers": [
-        {
-          "title": "",
-          "message": "",
-          "code": ""
-        }
-      ],
-      "title": "original_chocolates",
-      "width": "l"
-    },
-    "41": {
-      "id": "41",
-      "type": "lab.flow.Sequence",
-      "children": [
-        "39",
-        "40"
-      ],
-      "files": [],
-      "responses": [
-        {
-          "label": "",
-          "event": "",
-          "target": "",
-          "filter": ""
-        }
-      ],
-      "parameters": [
-        {
-          "name": "",
-          "value": "",
-          "type": "string"
-        }
-      ],
-      "messageHandlers": [
-        {
-          "title": "",
-          "message": "",
-          "code": ""
-        }
-      ],
-      "title": "original_questions"
     },
     "43": {
       "id": "43",
@@ -890,7 +888,7 @@
       "children": [
         "46",
         "45",
-        "41"
+        "6"
       ],
       "files": [],
       "responses": [

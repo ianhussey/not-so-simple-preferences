@@ -275,11 +275,11 @@ const study = lab.util.fromObject({
                   "width": "7",
                   "anchors": [
                     "1 = Not at all",
-                    null,
-                    null,
+                    "2",
+                    "3",
                     "4 = No opinion",
-                    null,
-                    null,
+                    "5",
+                    "6",
                     "7 = A lot"
                   ],
                   "label": "\u003Ci\u003EHuman poop in a toilet bowl\u003C\u002Fi\u003E",
@@ -375,11 +375,11 @@ const study = lab.util.fromObject({
                   "width": "7",
                   "anchors": [
                     "1 = Not at all",
-                    null,
-                    null,
+                    "2",
+                    "3",
                     "4 = No opinion",
-                    null,
-                    null,
+                    "5",
+                    "6",
                     "7 = A lot"
                   ],
                   "label": "\u003Ci\u003EA box of chocolates\u003C\u002Fi\u003E",
@@ -452,7 +452,7 @@ const study = lab.util.fromObject({
                   "coding": "dishonest"
                 },
                 {
-                  "label": "Please respond with 4 on this item",
+                  "label": "Please respond with 'Neutral' on this item",
                   "coding": "attention_check3"
                 },
                 {
@@ -535,9 +535,7 @@ const study = lab.util.fromObject({
                 "Strongly agree"
               ],
               "label": "\u003Ci\u003EPlease respond with how much you disagree or agree with the following statements:\u003C\u002Fi\u003E",
-              "name": "other_evaluations",
-              "shuffle": true,
-              "help": ""
+              "name": "other_beliefs"
             }
           ],
           "scrollTop": true,
