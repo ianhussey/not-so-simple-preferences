@@ -1,0 +1,250 @@
+---
+title: "Processing"
+author: "Jamie Cummins"
+format: html
+editor: visual
+---
+
+# Read in raw data
+
+```{r}
+
+raw_data <- read_rds("../../data/raw/anonymised_raw_data.rds")
+
+```
+
+# Demographic information extraction
+
+```{r}
+
+demographics_data <- raw_data |>
+  # identify distinct participants
+  distinct(participant_id, age, gender) |>
+  # remove incomplete responses or empty rows
+  filter(!is.na(gender))
+
+```
+
+# Scale responses
+
+## Desirability scale
+
+```{r}
+
+desirability_rating_data <- raw_data |>
+  filter(
+    str_detect(sender, "desirability_poop") | str_detect(sender, "desirability_chocolate")
+    ) |>
+  select(participant_id, sender, desirability) |>
+  mutate(
+    rating = case_match(
+      desirability,
+      "Very undesirable" ~ 1,
+      "Somewhat undesirable" ~ 2,
+      "A little undesirable" ~ 3,
+      "Neutral" ~ 4,
+      "A little desirable" ~ 5,
+      "Somewhat desirable" ~ 6,
+      "Very desirable" ~ 7
+      ),
+    .keep = "unused"
+    ) |>
+  pivot_wider(
+    names_from = sender,
+    values_from = rating
+  )
+
+
+```
+
+## Classic scales
+
+```{r}
+
+classic_rating_data <- raw_data |>
+  filter(
+    str_detect(sender, "classic_poop") | str_detect(sender, "classic_chocolate")
+    ) |>
+  select(participant_id, sender, contains("classic_")) |>
+  pivot_longer(
+    cols = contains("classic_"),
+    names_to = "item",
+    values_to = "rating"
+  ) |>
+  mutate(rating = 
+           case_when(
+             str_detect(rating, "Very p") ~ 7,
+             str_detect(rating, "Very g") ~ 7,
+             str_detect(rating, "Somewhat p") ~ 6,
+             str_detect(rating, "Somewhat g") ~ 6,
+             str_detect(rating, "A little p") ~ 5,
+             str_detect(rating, "A little g") ~ 5,
+             str_detect(rating, "Neutral") ~ 4,
+             str_detect(rating, "A little u") ~ 3,
+             str_detect(rating, "A little b") ~ 3,
+             str_detect(rating, "A little n") ~ 3,
+             str_detect(rating, "Somewhat u") ~ 2,
+             str_detect(rating, "Somewhat b") ~ 2,
+             str_detect(rating, "Somewhat n") ~ 2,
+             str_detect(rating, "Very u") ~ 1,
+             str_detect(rating, "Very n") ~ 1,
+             str_detect(rating, "Very b") ~ 1
+             ),
+         item = paste0(sender, "_", item),
+         .keep = "unused"
+         ) |>
+  pivot_wider(
+    names_from = "item",
+    values_from = "rating"
+    )
+
+```
+
+## Original scale
+
+```{r}
+
+original_scale_data <- raw_data |>
+  filter(
+    str_detect(sender, "original_poop") | str_detect(sender, "original_chocolate")
+    ) |>
+  select(participant_id, contains("original_")) |>
+  pivot_longer(
+    cols = contains("original_"),
+    names_to = "item",
+    values_to = "rating"
+  ) |>
+  filter(!is.na(rating),
+         !str_detect(item, "attention_check")) |>
+  pivot_wider(
+    names_from = "item",
+    values_from = "rating"
+  )
+
+```
+
+## Other scales
+
+```{r}
+
+other_scales <- raw_data |>
+  filter(
+    str_detect(sender, "other"),
+    sender != "other_questions"
+  ) |>
+  select(participant_id, contains("other_")) |>
+  pivot_longer(
+    cols = contains("other_"),
+    names_to = "item",
+    values_to = "rating"
+  ) |>
+  filter(
+    !is.na(rating),
+    !str_detect(item, "attention_check")
+    ) |>
+  pivot_wider(
+    names_from = item,
+    values_from = rating
+  )
+
+
+```
+
+## Combine all scales
+
+```{r}
+
+all_scales_data <- desirability_rating_data |>
+  left_join(classic_rating_data) |>
+  left_join(original_scale_data) |>
+  left_join(other_scales) |>
+  # ensure all scale response variables are numeric
+  mutate(
+    across(
+      -participant_id,
+      ~as.numeric(.)
+      )
+    )
+
+```
+
+# Exclusions and manipulation checks
+
+```{r}
+
+# self exclusion criterion
+self_exclusion_data <- raw_data |>
+  filter(
+    str_detect(sender, "self_exclusion")
+  ) |>
+  select(participant_id, self_exclude) |>
+  mutate(
+    self_exclude = ifelse(self_exclude == "include", "passed", "failed")
+    )
+
+
+# For the attention check data:
+# check1 = 1
+# check2 = 7
+# check3 = 4
+attention_check_data <- raw_data |>
+  select(participant_id, contains("attention_check")) |>
+  pivot_longer(cols = contains("attention_check")) |>
+  filter(!is.na(value)) |>
+  pivot_wider() |>
+  mutate(
+    attention_check1 = ifelse(
+      poop_original_attention_check1 == 1, "passed", "failed"
+      ),
+    attention_check2 = ifelse(
+      chocolates_original_attention_check2 == 7, "passed", "failed"
+      ),
+    attention_check3 = ifelse(
+      other_evaluations_attention_check3 == 4, "passed", "failed"
+      ),
+    .keep = "unused"
+  )
+
+
+# bot check
+bot_check_data <- raw_data |>
+  select(participant_id, contains("bot_check")) |>
+  filter(!is.na(bot_check)) |>
+  mutate(bot_check = ifelse(bot_check == "", "passed", "failed"))
+
+
+# Need to double-check what total completion was defined as, but IIRC it was just finishing the whole study?
+total_completion_data <- raw_data |>
+  filter(sender == "self_exclusion") |>
+  select(participant_id, ended_on) |>
+  mutate(
+    total_completion_check = ifelse(
+      ended_on == "form submission", "passed", "failed"
+      ),
+    .keep = "unused"
+  )
+
+
+# create final full exclusions dataframe
+combined_exclusions_data <- attention_check_data |>
+  left_join(self_exclusion_data) |>
+  left_join(bot_check_data) |>
+  left_join(total_completion_data)
+  
+
+```
+
+# Create final dataframe
+
+```{r}
+
+processed_data <- all_scales_data |>
+  left_join(combined_exclusions_data)
+
+write_rds(
+  processed_data, 
+  "../../data/processed/processed_data.rds"
+  )
+
+
+```

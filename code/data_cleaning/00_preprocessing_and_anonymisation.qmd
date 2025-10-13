@@ -1,0 +1,162 @@
+---
+title: "anonymisation"
+author: Jamie Cummins
+format: html
+editor: visual
+---
+
+# Read in sqlite data
+
+## Load packages and set directories
+
+```{r}
+
+library(Hmisc)
+library(RSQLite)
+library(jsonlite)
+library(tidyverse)
+library(janitor)
+library(pacman)
+library(knitr)
+library(kableExtra)
+library(lubridate) 
+library(RCurl)
+library(threadr)
+
+# access secure password and site directory variables
+site_directory <- Sys.getenv("SITE_DIRECTORY")
+site_password <- Sys.getenv("SITE_PASS")
+
+# specify directory for downloads
+download_folder <- '../../data/raw/'
+
+# specify exact locations
+download_location <- paste0(download_folder, "prolific_data.sqlite")
+
+
+# specify data to be downloaded and login credentials
+url <- paste0(site_directory, "ih/not-so-simple-preferences/data/data.sqlite")
+credentials <- site_password
+
+
+# download questionnaire data and save it to location
+download_ftp_file(file_remote = url,
+                  file_local = download_location,
+                  credentials = credentials)
+
+```
+
+## Establish connection with SQL server
+
+```{r}
+
+# Establish SQL connection to database
+con <-
+  dbConnect(drv = RSQLite::SQLite(),
+            dbname = download_location)
+
+
+# Extract main table
+full_data <-
+  dbGetQuery(conn = con,
+             statement = 'SELECT * FROM labjs')
+
+# Close and discard connection
+dbDisconnect(conn = con)
+rm(con)
+
+```
+
+## Code for parsing of sqlite files
+
+Defines various functions to be used when extracting data
+
+```{r}
+
+# count the number of characters needed to ensure identifiers are unique
+count_unique <- function(x) {
+  return(length(unique(x)))
+}
+
+information_preserved <- function(x, length) {
+  return(count_unique(str_sub(x, end = i)) == count_unique(x))
+}
+
+for (i in 5:36) {
+  if (
+    information_preserved(d$session, i) &&
+    information_preserved(d$observation, i)
+  ) {
+    break()
+  }
+}
+
+# data extraction function
+parseJSON <- function(input) {
+  return(input |>
+           fromJSON(flatten = TRUE) %>% {
+             if (class(.) == 'list') {discard(., is.null) |> as_tibble()}
+             else {.}
+             } |>
+           janitor::clean_names() |>
+           mutate_all(as.character))
+}
+
+```
+
+## Do extraction and processing
+
+```{r}
+
+# extract meta-data
+meta_data <-
+  map_dfr(full_data$metadata, fromJSON) |> # apply JSON function to the metadata
+  rename(unique_id = id) # rename to avoid confusion
+
+# add extracted meta-data to dataframe
+main_data <- full_data |>
+  bind_cols(meta_data) |>
+  select(-metadata) |>
+  mutate(
+    session = str_sub(session, end = i),
+    unique_id = str_sub(unique_id, end = i)
+    )
+
+# get incremental data
+full_raw_data <- main_data |>
+  filter(payload %in% c('incremental', 'latest')) |>
+  group_by(unique_id, id) %>%
+  do(
+    {map_dfr(.$data, parseJSON)} |>
+      bind_rows()
+  ) |>
+  ungroup()
+
+```
+
+## Do anonymisation
+
+```{r}
+
+# # get full data, add participant identifier to every row
+# unblinded_data <- full_raw_data |>
+#   group_by(unique_id) |>
+#   fill(prolific_id, .direction = "downup") |>
+#   ungroup()
+# 
+# # identify the distinct participant identities
+# participant_ids <- unblinded_data |>
+#   distinct(prolific_id) |>
+#   filter(!is.na(prolific_id)) |>
+#   # create blinded participant IDs based on row numbers
+#   mutate(blinded_participant_id = row_number()) 
+# 
+# # add blinded IDs to data; remove identifiables
+# blinded_data <- unblinded_data |>
+#   left_join(participant_ids) |>
+#   select(-prolific_id) |>
+#   rename(participant_id = blinded_participant_id)
+
+write_rds(blinded_data, "../../data/raw/anonymised_raw_data.rds")
+  
+```
