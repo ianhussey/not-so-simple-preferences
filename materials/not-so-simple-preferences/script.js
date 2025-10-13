@@ -9,8 +9,8 @@ const study = lab.util.fromObject({
       "path": undefined
     },
     {
-      "type": "lab.plugins.Download",
-      "filePrefix": "not-so-simple-preferences",
+      "type": "lab.plugins.Transmit",
+      "url": "backend.php",
       "path": undefined
     }
   ],
@@ -23,6 +23,37 @@ const study = lab.util.fromObject({
   "files": {},
   "responses": {},
   "content": [
+    {
+      "type": "lab.html.Page",
+      "items": [
+        {
+          "type": "text",
+          "title": "Informed consent and information about the study",
+          "content": "Aim of the study\n\nIn this online study (approximately 6 minutes), you will complete a survey in which you are asked to evaluate two stimuli: chocolate and feces (poop). For example, how positive, pleasant, interesting, and attention capturing each is. These questions will be multiple choice with no right or wrong answers.\n\nAre there any risks involved?\n\n**You will be shown an image of human poop in a toilet bowl during the study.** You may find this image to be disgusting. \nYou will also be shown an image of chocolates. \nParticipation involves no other known risks.\n\nPayment\n\nIf you choose to participate, you will be paid GBP .60 through the prolific platform for your participation. This study uses one or more ‘attention check’ questions. Your payment is not contingent on your responses to these items, they are only used in the data analysis.\nTo be paid, you must complete all questions. The final page of the survey includes a question where you can indicate that you want your data to be excluded from the analysis. This will not affect your payment.\n\nYour data\n\nYour data will be saved anonymously with a personal code that links you to your data. This code will allow us to pay you after you’ve completed the survey and to delete your data if you request it. You may request the deletion of your data without any further explanation and\nwithout any penalties.\nYour data will be irrevocably anonymised by the leader of this study one week after data collection, when the leader of the study will delete the personal code that links you to your data. You have until this time to request the deletion of your data. The leader of this study is the only person who has access to this personal code.\nYour irrevocably anonymised data will be shared publicly on two websites for sharing scientific data: Open Science Framework (https:\u002F\u002Fosf.io) and GitHub (https:\u002F\u002Fgithub.com). It will not be possible to link any of this data back to you.\n\nInformed consent\n\n\"By clicking 'I consent' below, I affirm the following:\n\n- I am at least 18 years of age.\n- I was informed about the goal, the procedure, the possible advantages and disadvantages and the possible risks of this study.\n- I’ve read and understood the written information about the study.\n- I have had sufficient time to decide whether or not to participate in this study. I understand that participating in this study involves me being shown an image of (a) chocolate and (b) feces (poop).\n- I understand that my personal data will only be stored anonymously. I have been informed about the conditions under which I can request the deletion of my data.\n- I understand that I will have the right to demand my data to be deleted for one week after my participation. To do this, I can contact the study leader (ian.hussey@unibe.ch). I understand that after this time the personal code which links my data to me will be irreversibly deleted, after which the identification of my data for deletion is not possible.\n- I understand that my irrevocably anonymised data will be shared publicly on two websites for sharing scientific data: Open Science Framework (https:\u002F\u002Fosf.io) and GitHub (https:\u002F\u002Fgithub.com).\n- I agree that members of the ethics committee overseeing this study may inspect my original data.\n- I am participating in this study voluntarily. I understand that I can withdraw my consent to participate at any time and without providing reasons, without any disadvantages to me.\"\n\nIf you do not consent, please close this window now."
+        },
+        {
+          "required": true,
+          "type": "radio",
+          "options": [
+            {
+              "label": "I consent",
+              "coding": "consent"
+            }
+          ],
+          "name": ""
+        }
+      ],
+      "scrollTop": true,
+      "submitButtonText": "Continue →",
+      "submitButtonPosition": "right",
+      "files": {},
+      "responses": {
+        "": ""
+      },
+      "parameters": {},
+      "messageHandlers": {},
+      "title": "consent"
+    },
     {
       "type": "lab.html.Page",
       "items": [
@@ -613,7 +644,7 @@ const study = lab.util.fromObject({
         {
           "type": "text",
           "title": "Thank you!",
-          "content": "Your data have been recorded. Your completion code is XXXXXXXX. Please take note of this and then feel free to close this window. "
+          "content": "Your data have been recorded. Your completion code is C44YS6QA. Please take note of this and then feel free to close this window. "
         }
       ],
       "scrollTop": true,
