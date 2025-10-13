@@ -1,0 +1,4 @@
+Age 18-100
+Resident in UK or US
+Previous approval rate >=90%
+Fluent in English.
