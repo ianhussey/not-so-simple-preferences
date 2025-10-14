@@ -1,0 +1,750 @@
+---
+title: "(Not so) simple preferences"
+subtitle: "Analysis"
+author: "Ian Hussey"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    highlight: haddock
+    theme: flatly
+    toc: yes
+    toc_float: yes
+---
+
+# TODO
+
+NA
+
+```{r include=FALSE}
+
+knitr::opts_chunk$set(message = FALSE, 
+                      warning = FALSE)
+
+options(scipen=999)
+
+```
+
+# Dependencies
+
+```{r}
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(effectsize)
+library(psych)
+library(knitr)
+library(kableExtra)
+library(janitor)
+library(lavaan)
+library(tibble)
+
+```
+
+# Load data
+
+```{r}
+
+data_predictions <- read_csv("../../data/raw/data_predictions.csv")
+
+data_processed <- read_rds("../../data/processed/data_processed.rds")
+
+```
+
+# Exclusions
+
+```{r}
+
+data_processed |>
+  count(attention_check1, 
+        attention_check2,
+        attention_check3,
+        self_exclude,
+        bot_check, 
+        age_check,
+        completeness_check,
+        completion_time_check) |>
+  arrange(desc(n))
+
+data_exclusions <- data_processed |>
+  filter(attention_check1 == "passed" & 
+           attention_check2 == "passed" &
+           attention_check3 == "passed" &
+           self_exclude == "passed" &
+           bot_check == "passed" & 
+           age_check == "passed" & 
+           completeness_check == "passed" & 
+           completion_time_check == "passed") 
+
+ggplot(data_exclusions, aes(completion_time/60)) +
+  geom_histogram(binwidth = 1, boundary = 0) +
+  xlab("minutes") +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 15), limits = c(0, NA)) +
+  geom_vline(xintercept = 2, linetype = "dashed", color = "red") +
+  ggtitle("Study completion time in non-excluded participants")
+
+```
+
+# Demographics
+
+```{r}
+
+data_exclusions |>
+  summarize(n = n(),
+            mean_age = mean(age),
+            sd_age = sd(age)) |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+data_exclusions |>
+  count(gender) |>
+  mutate(percent = n/sum(n)*100) |>
+  mutate_if(is.numeric, round_half_up, digits = 1) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+data_exclusions |>
+  count(ethnicity) |>
+  mutate(percent = n/sum(n)*100) |>
+  mutate_if(is.numeric, round_half_up, digits = 1) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+data_exclusions |>
+  count(country) |>
+  mutate(percent = n/sum(n)*100) |>
+  mutate_if(is.numeric, round_half_up, digits = 1) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+```
+
+# Cronbach's alpha
+
+## Classic preference items
+
+### Poop
+
+```{r}
+
+# data_exclusions |>
+#   select(starts_with("classic_poop_")) |>
+#   cor() |>
+#   round(2)
+
+reliability_poop_classic <- data_exclusions |>
+  select(starts_with("classic_poop_")) |>
+  alpha()
+
+reliability_poop_classic$total$raw_alpha
+
+```
+
+### Poop
+
+```{r}
+
+# data_exclusions |>
+#   select(starts_with("classic_chocolate_")) |>
+#   cor() |>
+#   round(2)
+
+reliability_chocolate_classic <- data_exclusions |>
+  select(starts_with("classic_chocolate_")) |>
+  alpha()
+
+reliability_chocolate_classic$total$raw_alpha
+
+```
+
+## Original items
+
+### Poop
+
+```{r}
+
+# data_exclusions |>
+#   select(starts_with("original_poop_")) |>
+#   cor() |>
+#   round(2)
+
+reliability_poop_original <- data_exclusions |>
+  select(starts_with("original_poop_")) |>
+  alpha()
+
+reliability_poop_original$total$raw_alpha
+
+```
+
+### Poop
+
+```{r}
+
+# data_exclusions |>
+#   select(starts_with("original_chocolate_")) |>
+#   cor() |>
+#   round(2)
+
+reliability_chocolate_original <- data_exclusions |>
+  select(starts_with("original_chocolate_")) |>
+  alpha()
+
+reliability_chocolate_original$total$raw_alpha
+
+```
+
+# Convergent validity
+
+## Chocolate
+
+```{r fig.height=5, fig.width=5}
+
+data_exclusions |>
+  select(desirability_chocolate,
+         classic_chocolate,
+         original_chocolate) |>
+  cor() |>
+  round_half_up(2)
+
+ggplot(data_exclusions, aes(desirability_chocolate, classic_chocolate)) +
+  geom_jitter(width = 0.1, height = 0.1, alpha = 0.3) +
+  scale_x_continuous(limits = c(0.5, 7.5), breaks = 1:7) +
+  scale_y_continuous(limits = c(0.5, 7.5), breaks = 1:7)
+
+ggplot(data_exclusions, aes(desirability_chocolate, original_chocolate)) +
+  geom_jitter(width = 0.1, height = 0.1, alpha = 0.3) +
+  scale_x_continuous(limits = c(0.5, 7.5), breaks = 1:7) +
+  scale_y_continuous(limits = c(0.5, 7.5), breaks = 1:7)
+
+```
+
+## Poop
+
+```{r fig.height=5, fig.width=5}
+
+data_exclusions |>
+  select(desirability_poop,
+         classic_poop,
+         original_poop) |>
+  cor() |>
+  round_half_up(2)
+
+ggplot(data_exclusions, aes(desirability_poop, classic_poop)) +
+  geom_jitter(width = 0.1, height = 0.1, alpha = 0.3) +
+  scale_x_continuous(limits = c(0.5, 7.5), breaks = 1:7) +
+  scale_y_continuous(limits = c(0.5, 7.5), breaks = 1:7)
+
+ggplot(data_exclusions, aes(desirability_poop, original_poop)) +
+  geom_jitter(width = 0.1, height = 0.1, alpha = 0.3) +
+  scale_x_continuous(limits = c(0.5, 7.5), breaks = 1:7) +
+  scale_y_continuous(limits = c(0.5, 7.5), breaks = 1:7)
+
+```
+
+# Chocolate vs poop
+
+## Single item desirability
+
+```{r}
+
+res <- repeated_measures_d(x = data_exclusions$desirability_chocolate, 
+                           y = data_exclusions$desirability_poop, 
+                           method = "rm")
+
+res
+
+```
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$desirability_chocolate, 
+                    y = data_exclusions$desirability_poop, 
+                    method = "z")
+
+```
+
+### Predicted vs observed
+
+Researchers' predictions about the Cohen's d_rm between the single item desirability items.
+
+```{r}
+
+data_predictions |>
+  arrange(predicted_d) |>
+  kable() |>
+  kable_classic()
+
+ggplot(data_predictions, aes(predicted_d)) +
+  geom_histogram(boundary = 0.5, binwidth = 1) +
+  scale_x_continuous(breaks = 1:9, name = "Predicted Cohen's d_rm") +
+  ylab("Frequency") +
+  geom_vline(xintercept = res$d_rm, linetype = "dashed", color = "red") +
+  theme_linedraw()
+
+```
+
+## Classic preference items
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$classic_chocolate, 
+                    y = data_exclusions$classic_poop, 
+                    method = "rm")
+
+```
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$classic_chocolate, 
+                    y = data_exclusions$classic_poop, 
+                    method = "z")
+
+```
+
+## Original items
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$original_chocolate, 
+                    y = data_exclusions$original_poop, 
+                    method = "rm")
+
+```
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$original_chocolate, 
+                    y = data_exclusions$original_poop, 
+                    method = "z")
+
+```
+
+## Latent differences classic
+
+```{r}
+
+mod <- '
+  X =~ l1*classic_poop_pos_neg +
+       l2*classic_poop_pleasant_unpleasant +
+       l3*classic_poop_good_bad
+  Y =~ l1*classic_chocolate_pos_neg +
+       l2*classic_chocolate_pleasant_unpleasant +
+       l3*classic_chocolate_good_bad
+
+  classic_poop_pos_neg                  ~ i1*1
+  classic_chocolate_pos_neg             ~ i1*1
+  classic_poop_pleasant_unpleasant      ~ i2*1
+  classic_chocolate_pleasant_unpleasant ~ i2*1
+  classic_poop_good_bad                 ~ i3*1
+  classic_chocolate_good_bad            ~ i3*1
+
+  classic_poop_pos_neg                  ~~ classic_chocolate_pos_neg
+  classic_poop_pleasant_unpleasant      ~~ classic_chocolate_pleasant_unpleasant
+  classic_poop_good_bad                 ~~ classic_chocolate_good_bad
+
+  # Free variances and means of X and Y
+  X ~~ varX*X
+  Y ~~ varY*Y
+  X ~~ covXY*Y 
+  X ~  muX*1
+  Y ~  muY*1
+
+  muDiff := muX - muY
+  sdDiff := sqrt(varX + varY - 2*covXY)
+  dz     := muDiff / sdDiff
+'
+fit <- cfa(mod, data = data_exclusions, meanstructure = TRUE, estimator = "MLR")
+subset(parameterEstimates(fit, ci = TRUE), op == ":=") 
+
+```
+
+# Scale validation
+
+```{r}
+
+# -------------------------------------------------------------------
+# cfa_screen_scale()
+#   dat:    data.frame with item columns
+#   items:  character vector of item names (e.g., c("s1","s2","s3","s4","s5"))
+#   ordered: TRUE if items are ordinal (Likert). Uses WLSMV; else MLR+FIML
+#   std_lv: identify factor by unit variance (TRUE) or marker item (FALSE)
+#   thresholds: flagging cutoffs (editable)
+# -------------------------------------------------------------------
+cfa_screen_scale <- function(
+  dat,
+  items,
+  ordered = FALSE,
+  std_lv = TRUE,
+  thresholds = list(
+    min_std_loading = 0.40,   # standardized loading < .40 → weak
+    min_r2          = 0.20,   # item R^2 < .20 → weak
+    max_abs_stdres  = 2.0,    # |standardized residual| > 2 → local misfit
+    min_mi          = 10      # MI ≥ 10 → plausible cross-loading/resid cov
+  )
+) {
+  stopifnot(all(items %in% names(dat)))
+  k <- length(items)
+  if (k < 3) stop("Need ≥ 3 items for a stable one-factor CFA screen.")
+
+  # Model: one latent factor F loading on all items
+  mod <- paste0("F =~ ", paste(items, collapse = " + "))
+
+  # Estimation choices
+  estimator <- if (ordered) "WLSMV" else "MLR"
+  miss      <- if (ordered) "listwise" else "fiml"
+  ordered_vec <- if (ordered) items else NULL
+
+  fit <- cfa(
+    model = mod,
+    data  = dat,
+    std.lv = std_lv,
+    meanstructure = TRUE,
+    estimator = estimator,
+    missing = miss,
+    ordered = ordered_vec
+  )
+
+  # --- Global fit
+  fm <- fitMeasures(fit, c("chisq","df","pvalue","cfi","tli","rmsea",
+                           "rmsea.ci.lower","rmsea.ci.upper","srmr"))
+  fit_table <- enframe(fm, name = "fit_index", value = "value")
+
+  # --- Loadings and R^2
+  loadings <- standardizedSolution(fit) |>
+    filter(op == "=~", lhs == "F", rhs %in% items) |>
+    transmute(item = rhs, std_loading = est.std)
+
+  r2_tbl <- enframe(lavInspect(fit, "r2"), name = "item", value = "R2") |>
+    filter(item %in% items)
+
+  item_stats <- loadings |>
+    left_join(r2_tbl, by = "item")
+
+  # --- Standardized residuals (covariance residuals)
+  zres <- lavResiduals(fit, type = "cor")$cov
+  zres_long <- as.data.frame(as.table(zres)) |>
+    rename(item1 = Var1, item2 = Var2, stdres = Freq) |>
+    filter(item1 %in% items, item2 %in% items, item1 != item2)
+  max_abs_stdres <- zres_long |>
+    group_by(item = item1) |>
+    summarise(max_abs_stdres = max(abs(stdres), na.rm = TRUE), .groups = "drop")
+
+  # --- Modification indices: largest MI affecting each item
+  mi <- modindices(fit)
+  # keep: potential cross-loadings (any other factor—none here) and residual covariances
+  mi_items <- mi |>
+    filter(
+      # residual covariances among items
+      (op == "~~" & lhs %in% items & rhs %in% items & lhs != rhs) |
+      # (for completeness) cross-loadings would be: op == "=~" & rhs %in% items
+      (op == "=~" & rhs %in% items)
+    ) |>
+    mutate(affects = ifelse(op == "=~", rhs, pmin(lhs, rhs))) |>
+    group_by(affects) |>
+    summarise(max_mi = max(mi, na.rm = TRUE), .groups = "drop") |>
+    rename(item = affects)
+
+  # --- Combine diagnostics and flags
+  thr <- thresholds
+  diag <- item_stats |>
+    left_join(max_abs_stdres, by = "item") |>
+    left_join(mi_items, by = "item") |>
+    mutate(
+      max_mi = replace_na(max_mi, 0),
+      max_abs_stdres = replace_na(max_abs_stdres, 0),
+      flag_loading = std_loading < thr$min_std_loading,
+      flag_r2      = R2 < thr$min_r2,
+      flag_stdres  = max_abs_stdres > thr$max_abs_stdres,
+      flag_mi      = max_mi >= thr$min_mi,
+      flag_any     = flag_loading | flag_r2 | flag_stdres | flag_mi
+    ) |>
+    arrange(desc(flag_any), std_loading)
+
+  list(
+    call = match.call(),
+    model_syntax = mod,
+    fit = fit,
+    fit_indices = fit_table,
+    item_diagnostics = diag,
+    std_residuals = zres_long
+  )
+}
+
+```
+
+## Poop
+
+### Full scale
+
+```{r}
+
+res <- cfa_screen_scale(data_exclusions, 
+                        items = c("original_poop_like",
+                                  "original_poop_attention_capturing",
+                                  "original_poop_unusual",
+                                  "original_poop_figure_out",
+                                  "original_poop_positive",
+                                  "original_poop_fixtated",
+                                  "original_poop_look_away",
+                                  "original_poop_focused",
+                                  "original_poop_negative",
+                                  "original_poop_disgusting",
+                                  "original_poop_appealing",
+                                  "original_poop_eye_catching",
+                                  "original_poop_attractive",
+                                  "original_poop_avoid_looking"), 
+                        ordered = TRUE)
+
+# Global fit
+res$fit_indices
+
+# Item diagnostics (loadings, R2, max |std residual|, largest MI, and flags)
+res$item_diagnostics |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic()
+
+```
+
+### Dropped items
+
+```{r}
+
+res <- cfa_screen_scale(data_exclusions, 
+                        items = c("original_poop_like",
+                                  #"original_poop_attention_capturing",
+                                  #"original_poop_unusual",
+                                  "original_poop_figure_out",
+                                  "original_poop_positive",
+                                  "original_poop_fixtated",
+                                  "original_poop_look_away",
+                                  "original_poop_focused",
+                                  "original_poop_negative",
+                                  "original_poop_disgusting",
+                                  "original_poop_appealing",
+                                  #"original_poop_eye_catching",
+                                  "original_poop_attractive",
+                                  "original_poop_avoid_looking"), 
+                        ordered = TRUE)
+
+# Global fit
+res$fit_indices
+
+# Item diagnostics (loadings, R2, max |std residual|, largest MI, and flags)
+res$item_diagnostics |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic()
+
+```
+
+## Chocolate
+
+### Full scale
+
+```{r}
+
+res <- cfa_screen_scale(data_exclusions, 
+                        items = c("original_chocolate_like",
+                                  "original_chocolate_attention_capturing",
+                                  "original_chocolate_unusual",
+                                  "original_chocolate_figure_out",
+                                  "original_chocolate_positive",
+                                  "original_chocolate_fixtated",
+                                  "original_chocolate_look_away",
+                                  "original_chocolate_focused",
+                                  "original_chocolate_negative",
+                                  "original_chocolate_disgusting",
+                                  "original_chocolate_appealing",
+                                  "original_chocolate_eye_catching",
+                                  "original_chocolate_attractive",
+                                  "original_chocolate_avoid_looking"), 
+                        ordered = TRUE)
+
+# Global fit
+res$fit_indices
+
+# Item diagnostics (loadings, R2, max |std residual|, largest MI, and flags)
+res$item_diagnostics |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic()
+
+```
+
+### Dropped items
+
+```{r}
+
+res <- cfa_screen_scale(data_exclusions, 
+                        items = c("original_chocolate_like",
+                                  #"original_chocolate_attention_capturing",
+                                  #"original_chocolate_unusual",
+                                  "original_chocolate_figure_out",
+                                  "original_chocolate_positive",
+                                  "original_chocolate_fixtated",
+                                  "original_chocolate_look_away",
+                                  "original_chocolate_focused",
+                                  "original_chocolate_negative",
+                                  "original_chocolate_disgusting",
+                                  "original_chocolate_appealing",
+                                  #"original_chocolate_eye_catching",
+                                  "original_chocolate_attractive",
+                                  "original_chocolate_avoid_looking"), 
+                        ordered = TRUE)
+
+# Global fit
+res$fit_indices
+
+# Item diagnostics (loadings, R2, max |std residual|, largest MI, and flags)
+res$item_diagnostics |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic()
+
+```
+
+# Other items
+
+## Using attention checks as a comparison
+
+Retaining all exclusion criteria other than the attention checks 
+
+```{r}
+
+data_exclusions_partial <- data_processed |>
+  filter(self_exclude == "passed" &
+           bot_check == "passed" & 
+           age_check == "passed" & 
+           completeness_check == "passed" &
+           completion_time_check == "passed")
+
+repeated_measures_d(x = data_exclusions_partial$attention_check2_numeric,
+                    y = data_exclusions_partial$attention_check1_numeric,
+                    method = "rm")
+
+```
+
+```{r}
+
+repeated_measures_d(x = data_exclusions_partial$attention_check2_numeric,
+                    y = data_exclusions_partial$attention_check1_numeric,
+                    method = "z")
+
+data_exclusions_partial |>
+  summarize(mean_respondwith1 = mean(attention_check1_numeric),
+            sd_respondwith1 = sd(attention_check1_numeric),
+            mean_respondwith7 = mean(attention_check2_numeric),
+            sd_respondwith7 = sd(attention_check2_numeric)) |>
+  pivot_longer(cols = everything()) |>
+  mutate(value = round_half_up(value, 2))
+
+ggplot(data_exclusions_partial, aes(attention_check1_numeric)) +
+  geom_histogram(boundary = 0.5, binwidth = 1) +
+  scale_x_continuous(limits = c(0.5, 7.5), breaks = 1:7)
+
+ggplot(data_exclusions_partial, aes(attention_check2_numeric)) +
+  geom_histogram(boundary = 0.5, binwidth = 1) +
+  scale_x_continuous(limits = c(0.5, 7.5), breaks = 1:7)
+
+```
+
+
+
+# others
+
+other_evaluations_racist ? can't remember the pairing
+other_evaluations_shrewd ? can't remember the pairing
+
+## boys/girls wear skirts
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$other_beliefs_girls_skirts, 
+                    y = data_exclusions$other_beliefs_boys_skirts, 
+                    method = "rm")
+
+```
+
+## cat/fish have legs
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$other_beliefs_cats_legs, 
+                    y = data_exclusions$other_beliefs_fish_legs, 
+                    method = "rm")
+
+```
+
+## vacation pedophile
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$other_evaluations_vacation, 
+                    y = data_exclusions$other_evaluations_pedophile, 
+                    method = "rm")
+
+```
+
+## love murder
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$other_evaluations_love, 
+                    y = data_exclusions$other_evaluations_murder, 
+                    method = "rm")
+
+```
+
+## love pedophile
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$other_evaluations_love, 
+                    y = data_exclusions$other_evaluations_pedophile, 
+                    method = "rm")
+
+```
+
+## honest dishonest
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$other_evaluations_honest, 
+                    y = data_exclusions$other_evaluations_dishonest, 
+                    method = "rm")
+
+```
+
+## mcdonalds burger king
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$other_evaluations_mcdonalds, 
+                    y = data_exclusions$other_evaluations_burgerking, 
+                    method = "rm")
+
+```
+
+## liberals conservatives
+
+```{r}
+
+repeated_measures_d(x = data_exclusions$other_evaluations_liberals, 
+                    y = data_exclusions$other_evaluations_conservatives, 
+                    method = "rm")
+
+```
+
+# Session info
+
+```{r}
+
+sessionInfo()
+
+```
+
