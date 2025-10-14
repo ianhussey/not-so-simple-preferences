@@ -5,3 +5,5 @@ old/*
 
 data/raw/data_raw.sqlite
 data/raw/data_raw_flattened.rds
+data/raw/data_raw_flattened_prolificdata.rds
+data/raw/data_raw_prolific_export.csv
