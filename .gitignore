@@ -3,3 +3,5 @@
 
 old/*
 
+data/raw/data_raw.sqlite
+data/raw/data_raw_flattened.rds
