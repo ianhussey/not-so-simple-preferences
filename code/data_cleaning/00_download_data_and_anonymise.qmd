@@ -1,13 +1,27 @@
 ---
-title: "anonymisation"
+title: "Download data and anonymise"
 author: Jamie Cummins
 format: html
-editor: visual
+date: today
+output:
+  html_document:
+    code_folding: hide
+    highlight: haddock
+    theme: flatly
+    toc: yes
+    toc_float: yes
 ---
 
-# Read in sqlite data
+```{r include=FALSE}
 
-## Load packages and set directories
+knitr::opts_chunk$set(message = FALSE, 
+                      warning = FALSE)
+
+options(scipen=999)
+
+```
+
+# Dependencies
 
 ```{r}
 
@@ -23,6 +37,14 @@ library(lubridate)
 library(RCurl)
 library(threadr)
 
+```
+
+# Read in sqlite data from server
+
+## Set directories
+
+```{r}
+
 # access secure password and site directory variables
 site_directory <- Sys.getenv("SITE_DIRECTORY")
 site_password <- Sys.getenv("SITE_PASS")
@@ -31,7 +53,7 @@ site_password <- Sys.getenv("SITE_PASS")
 download_folder <- '../../data/raw/'
 
 # specify exact locations
-download_location <- paste0(download_folder, "prolific_data.sqlite")
+download_location <- paste0(download_folder, "data_raw.sqlite") # included in .gitignore so that it isnt shared publicly
 
 
 # specify data to be downloaded and login credentials
@@ -123,7 +145,7 @@ main_data <- full_data |>
     )
 
 # get incremental data
-full_raw_data <- main_data |>
+full_raw_data_temp <- main_data |>
   filter(payload %in% c('incremental', 'latest')) |>
   group_by(unique_id, id) %>%
   do(
@@ -132,31 +154,57 @@ full_raw_data <- main_data |>
   ) |>
   ungroup()
 
+# get full data, add participant identifier to every row
+full_raw_data <- full_raw_data_temp |>
+  group_by(unique_id) |>
+  fill(unique_id, .direction = "downup") |>
+  ungroup()
+
+# add completeness
+data_raw_flattened <- full_raw_data |>
+  count(prolific_id, unique_id, name = "n_rows_per_unique_id") |>
+  mutate(completeness_check = if_else(n_rows_per_unique_id==17, "passed", "failed")) |>
+  left_join(full_raw_data, by = join_by(prolific_id, unique_id))
+
+data_raw_flattened |>
+  count(prolific_id, unique_id, name = "n_rows_per_unique_id") |>
+  count(n_rows_per_unique_id, name = "frequency")
+
+write_rds(data_raw_flattened, "../../data/raw/data_raw_flattened.rds") # included in .gitignore so that it isnt shared publicly
+# data_raw_flattened <- read_rds("../../data/raw/data_raw_flattened.rds")
+
 ```
 
-## Do anonymisation
+# Compare with prolific payment records
 
 ```{r}
 
-# # get full data, add participant identifier to every row
-# unblinded_data <- full_raw_data |>
-#   group_by(unique_id) |>
-#   fill(prolific_id, .direction = "downup") |>
-#   ungroup()
-# 
-# # identify the distinct participant identities
-# participant_ids <- unblinded_data |>
-#   distinct(prolific_id) |>
-#   filter(!is.na(prolific_id)) |>
-#   # create blinded participant IDs based on row numbers
-#   mutate(blinded_participant_id = row_number()) 
-# 
-# # add blinded IDs to data; remove identifiables
-# blinded_data <- unblinded_data |>
-#   left_join(participant_ids) |>
-#   select(-prolific_id) |>
-#   rename(participant_id = blinded_participant_id)
+data_prolific <- read.csv("../../data/raw/data_raw_prolific_export.csv") |>
+  select(prolific_id = Participant.id,
+         age_prolific = Age,
+         sex_prolific = Sex,
+         ethnicity_prolific = Ethnicity.simplified,
+         country_prolific = Country.of.residence,
+         completion_time_prolific = Time.taken) 
 
-write_rds(blinded_data, "../../data/raw/anonymised_raw_data.rds")
+data_raw_flattened_prolificdata <- 
+  full_join(data_raw_flattened, 
+            data_prolific,
+            by = join_by(prolific_id))
+
+write_rds(data_raw_flattened_prolificdata, "../../data/raw/data_raw_flattened_prolificdata.rds") # included in .gitignore so that it isnt shared publicly
+# data_raw_flattened_prolificdata <- read_rds("../../data/raw/data_raw_flattened_prolificdata.rds")
+
+```
+
+# Do anonymisation
+
+```{r}
+
+# identify the distinct participant identities
+data_raw_flattened_prolificdata_anonymised <- data_raw_flattened_prolificdata |>
+  select(-prolific_id)
+  
+write_rds(data_raw_flattened_prolificdata_anonymised, "../../data/raw/data_raw_flattened_prolificdata_anonymised.rds")
   
 ```

@@ -1,27 +1,152 @@
 ---
 title: "Processing"
-author: "Jamie Cummins"
+author: "Jamie Cummins and Ian Hussey"
 format: html
-editor: visual
+editor: source
+date: today
+output:
+  html_document:
+    code_folding: hide
+    highlight: haddock
+    theme: flatly
+    toc: yes
+    toc_float: yes
 ---
 
-# Read in raw data
+```{r include=FALSE}
 
-```{r}
+knitr::opts_chunk$set(message = FALSE, 
+                      warning = FALSE)
 
-raw_data <- read_rds("../../data/raw/anonymised_raw_data.rds")
+options(scipen=999)
 
 ```
 
-# Demographic information extraction
+# Dependencies
 
 ```{r}
 
-demographics_data <- raw_data |>
-  # identify distinct participants
-  distinct(participant_id, age, gender) |>
-  # remove incomplete responses or empty rows
-  filter(!is.na(gender))
+library(readr)
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+```
+
+# Read in raw data, select variables of interest and rename
+
+```{r}
+
+data_raw <- read_rds("../../data/raw/data_raw_flattened_prolificdata_anonymised.rds") |>
+  select(participant_id = unique_id, 
+         completeness_check, 
+         id, url, sender, sender_type, 
+         duration, 
+         timestamp, 
+         
+         completion_time = completion_time_prolific,
+         bot_check, 
+         self_exclude, 
+         poop_original_attention_check1, 
+         chocolates_original_attention_check2, 
+         other_evaluations_attention_check3, 
+         
+         age, gender, 
+         age_prolific, sex_prolific, ethnicity_prolific, country_prolific, 
+         
+         desirability, 
+         classic_pos_neg, 
+         classic_pleasant_unpleasant, 
+         classic_good_bad, 
+         
+         poop_original_like,
+         poop_original_attention_capturing, 
+         poop_original_unusual, 
+         poop_original_figure_out, 
+         poop_original_positive, 
+         poop_original_fixtated, 
+         poop_original_look_away, 
+         poop_original_focused, 
+         poop_original_negative, 
+         poop_original_disgusting, 
+         poop_original_appealing, 
+         poop_original_eye_catching, 
+         poop_original_attractive, 
+         poop_original_avoid_looking, 
+         
+         chocolates_original_like, 
+         chocolates_original_attention_capturing, 
+         chocolates_original_unusual, 
+         chocolates_original_figure_out, 
+         chocolates_original_positive, 
+         chocolates_original_fixtated,  
+         chocolates_original_look_away, 
+         chocolates_original_focused,
+         chocolates_original_negative, 
+         chocolates_original_disgusting, 
+         chocolates_original_appealing, 
+         chocolates_original_eye_catching, 
+         chocolates_original_attractive, 
+         chocolates_original_avoid_looking, 
+         
+         other_evaluations_pedophile, 
+         other_evaluations_love, 
+         other_evaluations_murder, 
+         other_evaluations_vacation, 
+         other_evaluations_racist, 
+         other_evaluations_shrewd, 
+         other_evaluations_honest, 
+         other_evaluations_dishonest,
+         other_evaluations_mcdonalds, 
+         other_evaluations_burgerking, 
+         other_evaluations_conservatives, 
+         other_evaluations_liberals, 
+         other_beliefs_girls_skirts, 
+         other_beliefs_boys_skirts, 
+         other_beliefs_cats_legs, 
+         other_beliefs_fish_legs)
+
+```
+
+# Demographics
+
+```{r}
+
+data_demographics <- data_raw |>
+  filter(
+    str_detect(sender, "demographics")
+  ) |>
+  select(participant_id, age = age, gender, age_prolific, sex_prolific, ethnicity = ethnicity_prolific, country = country_prolific) |>
+  mutate(gender = tolower(gender),
+         sex_prolific = tolower(sex_prolific),
+         age = as.numeric(age)) |>
+  mutate(gender = case_when(gender == "man" ~ "male",
+                            gender == "male " ~ "male",
+                            gender == "m" ~ "male",
+                            gender == "male6" ~ "male",
+                            gender == "woman" ~ "female",
+                            gender == "female " ~ "female",
+                            gender == "f" ~ "female",
+                            gender == "xx" ~ "female",
+                            gender == "test" ~ NA_character_,
+                            gender == "non binary" ~ "non-binary",
+                            TRUE ~ gender)) |>
+  mutate(age_diff = age - age_prolific,
+         age_check = if_else(age_diff <= 0 & age_diff <= 2, "passed", "failed")) |>
+  select(-sex_prolific)
+
+# data_demographics |>
+#   distinct(gender) |>
+#   pull(gender)
+# 
+# data_demographics |>
+#   count(gender, sex_prolific) |>
+#   arrange(desc(n))
+# 
+# data_demographics |>
+#   mutate(age_diff = age - age_prolific) |>
+#   count(age_diff) |>
+#   arrange(desc(n))
 
 ```
 
@@ -31,7 +156,7 @@ demographics_data <- raw_data |>
 
 ```{r}
 
-desirability_rating_data <- raw_data |>
+desirability_rating_data <- data_raw |>
   filter(
     str_detect(sender, "desirability_poop") | str_detect(sender, "desirability_chocolate")
     ) |>
@@ -54,14 +179,13 @@ desirability_rating_data <- raw_data |>
     values_from = rating
   )
 
-
 ```
 
 ## Classic scales
 
 ```{r}
 
-classic_rating_data <- raw_data |>
+classic_rating_data <- data_raw |>
   filter(
     str_detect(sender, "classic_poop") | str_detect(sender, "classic_chocolate")
     ) |>
@@ -71,6 +195,7 @@ classic_rating_data <- raw_data |>
     names_to = "item",
     values_to = "rating"
   ) |>
+  mutate(item = str_remove(item, "classic_")) |>
   mutate(rating = 
            case_when(
              str_detect(rating, "Very p") ~ 7,
@@ -96,7 +221,10 @@ classic_rating_data <- raw_data |>
   pivot_wider(
     names_from = "item",
     values_from = "rating"
-    )
+    ) |>
+  # mean scoring - only possible this way as we exclude all non-missing data
+  mutate(classic_poop = (classic_poop_pos_neg + classic_poop_pleasant_unpleasant + classic_poop_good_bad)/3,
+         classic_chocolate = (classic_chocolate_pos_neg + classic_chocolate_pleasant_unpleasant + classic_chocolate_good_bad)/3)
 
 ```
 
@@ -104,7 +232,7 @@ classic_rating_data <- raw_data |>
 
 ```{r}
 
-original_scale_data <- raw_data |>
+original_scale_data <- data_raw |>
   filter(
     str_detect(sender, "original_poop") | str_detect(sender, "original_chocolate")
     ) |>
@@ -114,12 +242,58 @@ original_scale_data <- raw_data |>
     names_to = "item",
     values_to = "rating"
   ) |>
+  mutate(rating = as.numeric(rating)) |>
+  mutate(item = str_replace(item, "chocolates", "chocolate")) |>
+  mutate(item = str_replace(item, "chocolate_original_", "original_chocolate_")) |>
+  mutate(item = str_replace(item, "poop_original_", "original_poop_")) |>
   filter(!is.na(rating),
          !str_detect(item, "attention_check")) |>
   pivot_wider(
     names_from = "item",
     values_from = "rating"
-  )
+  ) |>
+  # reverse scoring 
+  mutate(
+    #original_poop_like = original_poop_like, 
+    #original_poop_attention_capturing = original_poop_attention_capturing, 
+    #original_poop_unusual = original_poop_unusual, 
+    #original_poop_figure_out = original_poop_figure_out, 
+    #original_poop_positive = original_poop_positive, 
+    #original_poop_fixtated = original_poop_fixtated, 
+    original_poop_look_away = 8 - original_poop_look_away, 
+    #original_poop_focused = original_poop_focused, 
+    original_poop_negative = 8 - original_poop_negative, 
+    original_poop_disgusting = 8 - original_poop_disgusting, 
+    #original_poop_appealing = original_poop_appealing, 
+    #original_poop_eye_catching = original_poop_eye_catching, 
+    #original_poop_attractive = original_poop_attractive, 
+    original_poop_avoid_looking = 8 - original_poop_avoid_looking,
+    
+    #original_chocolate_like = original_chocolate_like, 
+    #original_chocolate_attention_capturing = original_chocolate_attention_capturing, 
+    #original_chocolate_unusual = original_chocolate_unusual, 
+    #original_chocolate_figure_out = original_chocolate_figure_out, 
+    #original_chocolate_positive = original_chocolate_positive, 
+    #original_chocolate_fixtated = original_chocolate_fixtated, 
+    original_chocolate_look_away = 8 - original_chocolate_look_away, 
+    #original_chocolate_focused = original_chocolate_focused, 
+    original_chocolate_negative = 8 - original_chocolate_negative, 
+    original_chocolate_disgusting = 8 - original_chocolate_disgusting, 
+    #original_chocolate_appealing = original_chocolate_appealing, 
+    #original_chocolate_eye_catching = original_chocolate_eye_catching, 
+    #original_chocolate_attractive = original_chocolate_attractive, 
+    original_chocolate_avoid_looking = 8 - original_chocolate_avoid_looking
+  ) |>
+  # mean scoring - only possible this way as we exclude all non-missing data
+  mutate(original_poop = (original_poop_like + original_poop_attention_capturing + original_poop_unusual + original_poop_figure_out +
+           original_poop_positive + original_poop_fixtated + original_poop_look_away + original_poop_focused + 
+           original_poop_negative + original_poop_disgusting + original_poop_appealing + original_poop_eye_catching + 
+           original_poop_attractive + original_poop_avoid_looking)/14,
+         original_chocolate = (original_chocolate_like + original_chocolate_attention_capturing + original_chocolate_unusual +
+           original_chocolate_figure_out + original_chocolate_positive + original_chocolate_fixtated + 
+           original_chocolate_look_away + original_chocolate_focused + original_chocolate_negative + 
+           original_chocolate_disgusting + original_chocolate_appealing + original_chocolate_eye_catching + 
+           original_chocolate_attractive + original_chocolate_avoid_looking)/14)
 
 ```
 
@@ -127,7 +301,7 @@ original_scale_data <- raw_data |>
 
 ```{r}
 
-other_scales <- raw_data |>
+other_scales <- data_raw |>
   filter(
     str_detect(sender, "other"),
     sender != "other_questions"
@@ -147,7 +321,6 @@ other_scales <- raw_data |>
     values_from = rating
   )
 
-
 ```
 
 ## Combine all scales
@@ -155,9 +328,9 @@ other_scales <- raw_data |>
 ```{r}
 
 all_scales_data <- desirability_rating_data |>
-  left_join(classic_rating_data) |>
-  left_join(original_scale_data) |>
-  left_join(other_scales) |>
+  left_join(classic_rating_data, by = join_by(participant_id)) |>
+  left_join(original_scale_data, by = join_by(participant_id)) |>
+  left_join(other_scales, by = join_by(participant_id)) |>
   # ensure all scale response variables are numeric
   mutate(
     across(
@@ -168,12 +341,17 @@ all_scales_data <- desirability_rating_data |>
 
 ```
 
-# Exclusions and manipulation checks
+# Checks
 
 ```{r}
 
 # self exclusion criterion
-self_exclusion_data <- raw_data |>
+completeness_and_duration_data <- data_raw |>
+  distinct(participant_id, completeness_check, completion_time) |>
+  mutate(completion_time_check = if_else(completion_time < 120, "failed", "passed"))
+
+# self exclusion criterion
+self_exclusion_data <- data_raw |>
   filter(
     str_detect(sender, "self_exclusion")
   ) |>
@@ -182,12 +360,11 @@ self_exclusion_data <- raw_data |>
     self_exclude = ifelse(self_exclude == "include", "passed", "failed")
     )
 
-
 # For the attention check data:
 # check1 = 1
 # check2 = 7
 # check3 = 4
-attention_check_data <- raw_data |>
+attention_check_data <- data_raw |>
   select(participant_id, contains("attention_check")) |>
   pivot_longer(cols = contains("attention_check")) |>
   filter(!is.na(value)) |>
@@ -201,50 +378,138 @@ attention_check_data <- raw_data |>
       ),
     attention_check3 = ifelse(
       other_evaluations_attention_check3 == 4, "passed", "failed"
-      ),
-    .keep = "unused"
-  )
+      )
+    #.keep = "unused"
+  ) |>
+  select(-other_evaluations_attention_check3) |>
+  rename(attention_check1_numeric = poop_original_attention_check1,
+         attention_check2_numeric = chocolates_original_attention_check2) |>
+  mutate(attention_check1_numeric = as.numeric(attention_check1_numeric),
+         attention_check2_numeric = as.numeric(attention_check2_numeric))
 
 
 # bot check
-bot_check_data <- raw_data |>
+bot_check_data <- data_raw |>
   select(participant_id, contains("bot_check")) |>
   filter(!is.na(bot_check)) |>
   mutate(bot_check = ifelse(bot_check == "", "passed", "failed"))
 
-
-# Need to double-check what total completion was defined as, but IIRC it was just finishing the whole study?
-total_completion_data <- raw_data |>
-  filter(sender == "self_exclusion") |>
-  select(participant_id, ended_on) |>
-  mutate(
-    total_completion_check = ifelse(
-      ended_on == "form submission", "passed", "failed"
-      ),
-    .keep = "unused"
-  )
-
-
 # create final full exclusions dataframe
-combined_exclusions_data <- attention_check_data |>
-  left_join(self_exclusion_data) |>
-  left_join(bot_check_data) |>
-  left_join(total_completion_data)
-  
+combined_exclusions_data <- data_demographics |>
+  full_join(attention_check_data, by = join_by(participant_id)) |>
+  full_join(self_exclusion_data, by = join_by(participant_id)) |>
+  full_join(bot_check_data, by = join_by(participant_id)) |>
+  full_join(completeness_and_duration_data, by = join_by(participant_id)) |>
+  # if na, set to failed
+  mutate(attention_check1 = if_else(is.na(attention_check1), "failed", attention_check1),
+         attention_check2 = if_else(is.na(attention_check2), "failed", attention_check2),
+         attention_check3 = if_else(is.na(attention_check3), "failed", attention_check3),
+         self_exclude = if_else(is.na(self_exclude), "failed", self_exclude),
+         bot_check = if_else(is.na(bot_check), "failed", bot_check),
+         completeness_check = if_else(is.na(completeness_check), "failed", completeness_check),
+         completion_time_check = if_else(is.na(completion_time_check), "failed", completion_time_check))
 
 ```
 
-# Create final dataframe
+# Create final dataframe and write to disk
 
 ```{r}
 
-processed_data <- all_scales_data |>
-  left_join(combined_exclusions_data)
+data_processed <- all_scales_data |>
+  full_join(combined_exclusions_data, by = join_by(participant_id)) |>
+  # if na, set to failed
+  mutate(age_check = if_else(is.na(age_check), "failed", age_check)) |>
+  select(
+    participant_id, 
+    
+    # demographic info
+    gender, ethnicity, country, 
+    age,  
+    age_prolific, age_diff,
 
-write_rds(
-  processed_data, 
-  "../../data/processed/processed_data.rds"
+    # checks
+    attention_check1_numeric, 
+    attention_check2_numeric, 
+    attention_check1, 
+    attention_check2, 
+    attention_check3, 
+    self_exclude, 
+    bot_check, 
+    completeness_check, 
+    age_check, 
+    completion_time_check,
+    completion_time, 
+    
+    # single item scales
+    desirability_poop, 
+    desirability_chocolate, 
+    
+    # mean scored scales
+    classic_poop, 
+    classic_chocolate, 
+    original_poop, 
+    original_chocolate,
+    
+    # item level data
+    classic_poop_pos_neg, 
+    classic_poop_pleasant_unpleasant, 
+    classic_poop_good_bad, 
+    classic_chocolate_pos_neg, 
+    classic_chocolate_pleasant_unpleasant, 
+    classic_chocolate_good_bad, 
+    
+    original_poop_like, 
+    original_poop_attention_capturing, 
+    original_poop_unusual, 
+    original_poop_figure_out, 
+    original_poop_positive, 
+    original_poop_fixtated, 
+    original_poop_look_away, 
+    original_poop_focused, 
+    original_poop_negative, 
+    original_poop_disgusting, 
+    original_poop_appealing, 
+    original_poop_eye_catching, 
+    original_poop_attractive, 
+    original_poop_avoid_looking, 
+    
+    original_chocolate_like, 
+    original_chocolate_attention_capturing, 
+    original_chocolate_unusual, 
+    original_chocolate_figure_out, 
+    original_chocolate_positive, 
+    original_chocolate_fixtated, 
+    original_chocolate_look_away, 
+    original_chocolate_focused, 
+    original_chocolate_negative, 
+    original_chocolate_disgusting, 
+    original_chocolate_appealing, 
+    original_chocolate_eye_catching, 
+    original_chocolate_attractive, 
+    original_chocolate_avoid_looking, 
+    
+    # other items
+    other_evaluations_pedophile, 
+    other_evaluations_love, 
+    other_evaluations_murder, 
+    other_evaluations_vacation, 
+    other_evaluations_racist, 
+    other_evaluations_shrewd, 
+    other_evaluations_honest, 
+    other_evaluations_dishonest, 
+    other_evaluations_mcdonalds, 
+    other_evaluations_burgerking, 
+    other_evaluations_conservatives, 
+    other_evaluations_liberals, 
+    other_beliefs_girls_skirts, 
+    other_beliefs_boys_skirts, 
+    other_beliefs_cats_legs, 
+    other_beliefs_fish_legs
   )
 
+write_rds(data_processed, "../../data/processed/data_processed.rds")
 
 ```
+
+
+
