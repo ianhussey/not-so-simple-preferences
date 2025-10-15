@@ -34,6 +34,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(scales)
+library(forcats)
 library(effectsize)
 library(psych)
 library(knitr)
@@ -70,14 +71,7 @@ data_processed |>
   arrange(desc(n))
 
 data_exclusions <- data_processed |>
-  filter(attention_check1 == "passed" & 
-           attention_check2 == "passed" &
-           attention_check3 == "passed" &
-           self_exclude == "passed" &
-           bot_check == "passed" & 
-           age_check == "passed" & 
-           completeness_check == "passed" & 
-           completion_time_check == "passed") 
+  filter(global_check == "passed") 
 
 ggplot(data_exclusions, aes(completion_time/60)) +
   geom_histogram(binwidth = 1, boundary = 0) +
@@ -91,6 +85,13 @@ ggplot(data_exclusions, aes(completion_time/60)) +
 # Demographics
 
 ```{r}
+
+data_processed |>
+  count(global_check) |>
+  mutate(percent = n/sum(n)*100) |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
 
 data_exclusions |>
   summarize(n = n(),
@@ -118,6 +119,39 @@ data_exclusions |>
   count(country) |>
   mutate(percent = n/sum(n)*100) |>
   mutate_if(is.numeric, round_half_up, digits = 1) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+```
+
+# Distributions
+
+```{r}
+
+data_exclusions_reshaped <- data_exclusions |>
+  select(participant_id, 
+         desirability_chocolate, 
+         desirability_poop,
+         classic_chocolate,
+         classic_poop,
+         original_chocolate,
+         original_poop) |>
+  pivot_longer(cols = -participant_id,
+               names_to = c("scale", "stimulus"),
+               names_sep = "_",
+               values_to = "response") 
+
+ggplot(data_exclusions_reshaped, aes(response)) +
+  geom_histogram(boundary = 0.5, binwidth = 1) +
+  scale_x_continuous(limits = c(0.5, 7.5), breaks = 1:7) +
+  theme_linedraw() +
+  facet_grid(scale ~ stimulus)
+
+data_exclusions_reshaped |>
+  group_by(scale, stimulus) |>
+  summarize(mean = mean(response),
+            sd = sd(response)) |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
   kable() |>
   kable_classic(full_width = FALSE)
 
@@ -277,6 +311,9 @@ data_predictions |>
   arrange(predicted_d) |>
   kable() |>
   kable_classic()
+
+data_predictions |>
+  count()
 
 ggplot(data_predictions, aes(predicted_d)) +
   geom_histogram(boundary = 0.5, binwidth = 1) +
@@ -655,12 +692,73 @@ ggplot(data_exclusions_partial, aes(attention_check2_numeric)) +
 
 
 
-# others
+# Others
+
+## Distributions
+
+```{r}
+
+data_exclusions_reshaped_2 <- data_exclusions |>
+  select(participant_id, 
+         girls_skirts = other_beliefs_girls_skirts,
+         boys_skirts = other_beliefs_boys_skirts,
+         cats_legs = other_beliefs_cats_legs,
+         fish_legs = other_beliefs_fish_legs,
+         vacation = other_evaluations_vacation,
+         pedophile = other_evaluations_pedophile,
+         love = other_evaluations_love,
+         murder = other_evaluations_murder,
+         honest = other_evaluations_honest,
+         dishonest = other_evaluations_dishonest,
+         racist = other_evaluations_racist,
+         shrewd = other_evaluations_shrewd,
+         mcdonalds = other_evaluations_mcdonalds,
+         burgerking = other_evaluations_burgerking,
+         liberals = other_evaluations_liberals,
+         conservatives = other_evaluations_conservatives) |>
+  pivot_longer(cols = -participant_id,
+               names_to = "stimulus",
+               values_to = "response") |>
+  mutate(stimulus = fct_relevel(stimulus,
+                                "girls_skirts",
+                                "boys_skirts",
+                                "cats_legs",
+                                "fish_legs",
+                                "vacation",
+                                "pedophile",
+                                "love",
+                                "murder",
+                                "honest",
+                                "dishonest",
+                                "racist",
+                                "shrewd",
+                                "mcdonalds",
+                                "burgerking",
+                                "liberals",
+                                "conservatives"))
+
+ggplot(data_exclusions_reshaped_2, aes(response)) +
+  geom_histogram(boundary = 0.5, binwidth = 1) +
+  scale_x_continuous(limits = c(0.5, 7.5), breaks = 1:7) +
+  theme_linedraw() +
+  facet_wrap( ~ stimulus)
+
+data_exclusions_reshaped_2 |>
+  group_by(stimulus) |>
+  summarize(mean = mean(response),
+            sd = sd(response)) |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+```
+
+## Cohens d
 
 other_evaluations_racist ? can't remember the pairing
 other_evaluations_shrewd ? can't remember the pairing
 
-## boys/girls wear skirts
+### boys/girls wear skirts
 
 ```{r}
 
@@ -670,7 +768,7 @@ repeated_measures_d(x = data_exclusions$other_beliefs_girls_skirts,
 
 ```
 
-## cat/fish have legs
+### cat/fish have legs
 
 ```{r}
 
@@ -680,7 +778,7 @@ repeated_measures_d(x = data_exclusions$other_beliefs_cats_legs,
 
 ```
 
-## vacation pedophile
+### vacation pedophile
 
 ```{r}
 
@@ -690,7 +788,7 @@ repeated_measures_d(x = data_exclusions$other_evaluations_vacation,
 
 ```
 
-## love murder
+### love murder
 
 ```{r}
 
@@ -700,7 +798,7 @@ repeated_measures_d(x = data_exclusions$other_evaluations_love,
 
 ```
 
-## love pedophile
+### love pedophile
 
 ```{r}
 
@@ -710,7 +808,7 @@ repeated_measures_d(x = data_exclusions$other_evaluations_love,
 
 ```
 
-## honest dishonest
+### honest dishonest
 
 ```{r}
 
@@ -720,7 +818,7 @@ repeated_measures_d(x = data_exclusions$other_evaluations_honest,
 
 ```
 
-## mcdonalds burger king
+### mcdonalds burger king
 
 ```{r}
 
@@ -730,7 +828,7 @@ repeated_measures_d(x = data_exclusions$other_evaluations_mcdonalds,
 
 ```
 
-## liberals conservatives
+### liberals conservatives
 
 ```{r}
 
@@ -739,6 +837,127 @@ repeated_measures_d(x = data_exclusions$other_evaluations_liberals,
                     method = "rm")
 
 ```
+
+# Multiverse
+
+```{r fig.height=3, fig.width=6}
+
+library(purrr)
+library(ggstance)
+
+cohens_d_independent <- function(data, method, hedges_correction = TRUE){
+  require(dplyr)
+  require(tibble)
+  require(effectsize)
+  
+  if(method == "s"){
+    pooled = TRUE
+  } else if(method == "welch"){
+    pooled = FALSE
+  }
+  
+  res <- cohens_d(x = data$scores_group_1, 
+                  y = data$scores_group_2, 
+                  data = data,
+                  pooled_sd = pooled,
+                  adjust = hedges_correction)
+
+  res <- 
+    tibble(method = paste0("d_", method),
+           estimate = res[,1],
+           ci_lower = res[,3],
+           ci_upper = res[,4])
+  
+  return(res)
+}
+
+cohens_d_dependent <- function(data, method, hedges_correction = TRUE){
+  require(dplyr)
+  require(tibble)
+  require(effectsize)
+  
+  res <- repeated_measures_d(x = data$scores_group_1, 
+                             y = data$scores_group_2, 
+                             data = data,
+                             method = method,
+                             adjust = hedges_correction)
+
+  res <- 
+    tibble(method = paste0("d_", method),
+           estimate = res[,1],
+           ci_lower = res[,3],
+           ci_upper = res[,4])
+  
+  return(res)
+}
+
+data_desirability <- data_exclusions |>
+    select(scores_group_1 = desirability_chocolate,
+           scores_group_2 = desirability_poop)
+
+data_classic <- data_exclusions |>
+    select(scores_group_1 = classic_chocolate,
+           scores_group_2 = classic_poop)
+
+data_original <- data_exclusions |>
+    select(scores_group_1 = original_chocolate,
+           scores_group_2 = original_poop)
+
+results_multi <- 
+  bind_rows(
+    map_df(.x = c("s"), # c("s", "welch"),
+         .f = ~cohens_d_independent(data = data_desirability, method = .x)) |> 
+      mutate(outcome = "desirability"),
+    map_df(.x = c("av", "rm", "z"),
+         .f = ~cohens_d_dependent(data = data_desirability, method = .x)) |> 
+      mutate(outcome = "desirability"),
+    
+    map_df(.x = c("s"), # c("s", "welch"),
+         .f = ~cohens_d_independent(data = data_classic, method = .x)) |> 
+      mutate(outcome = "classic"),
+    map_df(.x = c("av", "rm", "z"),
+         .f = ~cohens_d_dependent(data = data_classic, method = .x)) |> 
+      mutate(outcome = "classic"),
+    
+    map_df(.x = c("s"), # c("s", "welch"),
+         .f = ~cohens_d_independent(data = data_original, method = .x)) |> 
+      mutate(outcome = "original"),
+    map_df(.x = c("av", "rm", "z"),
+         .f = ~cohens_d_dependent(data = data_original, method = .x)) |> 
+      mutate(outcome = "original")
+  ) |>
+  mutate(ci_width = ci_upper - ci_lower) |>
+  mutate(outcome = fct_relevel(outcome, "original", "classic", "desirability")) |>
+  mutate(method = fct_rev(fct_relevel(method, c("d_s", "d_welch", "d_av", "d_rm", "d_z"))))
+
+results_multi |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+ggplot(results_multi, aes(estimate, method, color = outcome)) +
+  geom_linerangeh(aes(xmin = ci_lower, xmax = ci_upper), position = position_dodge(width = 0.7)) +
+  geom_point(position = position_dodge(width = 0.7)) +
+  scale_x_continuous(name = "Cohen's d", breaks = breaks_pretty(n = 6)) +
+  ylab("Cohen's d version") +
+  theme_linedraw() +
+  guides(color = guide_legend(reverse = TRUE)) +
+  ggtitle("Chocolate is more desirable than poop")
+
+results_multi |> 
+  mutate(label = paste(method, outcome)) |>
+  arrange(estimate, ci_width) |>
+  mutate(rank = row_number()) |>
+  ggplot(aes(estimate, rank)) +
+  geom_linerangeh(aes(xmin = ci_lower, xmax = ci_upper), position = position_dodge(width = 0.7)) +
+  geom_point(position = position_dodge(width = 0.7)) +
+  scale_x_continuous(name = "Cohen's d", breaks = breaks_pretty(n = 6)) +
+  scale_y_continuous(name = "", breaks = 1:15) +
+  theme_linedraw() +
+  ggtitle("Chocolate is more desirable than poop")
+
+```
+
 
 # Session info
 
