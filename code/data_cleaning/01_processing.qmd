@@ -399,15 +399,7 @@ combined_exclusions_data <- data_demographics |>
   full_join(attention_check_data, by = join_by(participant_id)) |>
   full_join(self_exclusion_data, by = join_by(participant_id)) |>
   full_join(bot_check_data, by = join_by(participant_id)) |>
-  full_join(completeness_and_duration_data, by = join_by(participant_id)) |>
-  # if na, set to failed
-  mutate(attention_check1 = if_else(is.na(attention_check1), "failed", attention_check1),
-         attention_check2 = if_else(is.na(attention_check2), "failed", attention_check2),
-         attention_check3 = if_else(is.na(attention_check3), "failed", attention_check3),
-         self_exclude = if_else(is.na(self_exclude), "failed", self_exclude),
-         bot_check = if_else(is.na(bot_check), "failed", bot_check),
-         completeness_check = if_else(is.na(completeness_check), "failed", completeness_check),
-         completion_time_check = if_else(is.na(completion_time_check), "failed", completion_time_check))
+  full_join(completeness_and_duration_data, by = join_by(participant_id))
 
 ```
 
@@ -417,6 +409,23 @@ combined_exclusions_data <- data_demographics |>
 
 data_processed <- all_scales_data |>
   full_join(combined_exclusions_data, by = join_by(participant_id)) |>
+  # if na, set to failed
+  mutate(attention_check1 = if_else(is.na(attention_check1), "failed", attention_check1),
+         attention_check2 = if_else(is.na(attention_check2), "failed", attention_check2),
+         attention_check3 = if_else(is.na(attention_check3), "failed", attention_check3),
+         self_exclude = if_else(is.na(self_exclude), "failed", self_exclude),
+         bot_check = if_else(is.na(bot_check), "failed", bot_check),
+         completeness_check = if_else(is.na(completeness_check), "failed", completeness_check),
+         completion_time_check = if_else(is.na(completion_time_check), "failed", completion_time_check)) |>
+  mutate(global_check = if_else(attention_check1 == "passed" &
+                                  attention_check2 == "passed" &
+                                  attention_check3 == "passed" &
+                                  self_exclude == "passed" &
+                                  bot_check == "passed" &
+                                  completeness_check == "passed" &
+                                  completion_time_check == "passed", 
+                                "passed", 
+                                "failed")) |>
   # if na, set to failed
   mutate(age_check = if_else(is.na(age_check), "failed", age_check)) |>
   select(
@@ -428,6 +437,7 @@ data_processed <- all_scales_data |>
     age_prolific, age_diff,
 
     # checks
+    global_check,
     attention_check1_numeric, 
     attention_check2_numeric, 
     attention_check1, 
