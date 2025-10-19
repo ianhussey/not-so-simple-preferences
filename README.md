@@ -7,3 +7,17 @@
 ## TODO
 
 - integrate the two analysis files, choose versions of d for this project. My recollection is that the best version of Cohen's d, Cohen's d_av, is not on CRAN and seems to not often be used, which is a shame.
+
+
+
+## License
+
+(c) Ian Hussey (2025)
+
+Data and text released under CC BY 4.0
+
+Code released under an MIT license
+
+### Suggested citation:
+
+Hussey, I., & Cummins, J. (2025). (Not so) simple preferences. https://github.com/ianhussey/not-so-simple-preferences
