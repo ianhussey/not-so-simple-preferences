@@ -91,6 +91,22 @@ data_processed |>
 data_exclusions <- data_processed |>
   filter(global_check == "passed") 
 
+write_csv(data_exclusions, "../../data/processed/data_processed_with_exclusions.csv")
+
+# for {effectsize} package
+data_exclusions |>
+  select(participant_id, gender, ethnicity, country, age, 
+         evaluations_poop = classic_poop, 
+         evaluations_chocolate = classic_chocolate, 
+         evaluations_poop_pos_neg = classic_poop_pos_neg, 
+         evaluations_poop_pleasant_unpleasant = classic_poop_pleasant_unpleasant, 
+         evaluations_poop_good_bad = classic_poop_good_bad, 
+         evaluations_chocolate_pos_neg = classic_chocolate_pos_neg, 
+         evaluations_chocolate_pleasant_unpleasant = classic_chocolate_pleasant_unpleasant, 
+         evaluations_chocolate_good_bad = classic_chocolate_good_bad) |>
+  write_csv("../../data/processed/data_processed_subset_with_exclusions.csv")
+
+
 ggplot(data_exclusions, aes(completion_time/60)) +
   geom_histogram(binwidth = 1, boundary = 0) +
   xlab("minutes") +
@@ -284,6 +300,24 @@ res$item_diagnostics |>
   kable() |>
   kable_classic(full_width = FALSE)
 
+data_exclusions |>
+  select(like = original_chocolate_like,
+         attention_capturing = original_chocolate_attention_capturing,
+         unusual = original_chocolate_unusual,
+         figure_out = original_chocolate_figure_out,
+         positive = original_chocolate_positive,
+         fixtated = original_chocolate_fixtated,
+         look_away = original_chocolate_look_away,
+         focused = original_chocolate_focused,
+         negative = original_chocolate_negative,
+         disgusting = original_chocolate_disgusting,
+         appealing = original_chocolate_appealing,
+         eye_catching = original_chocolate_eye_catching,
+         attractive = original_chocolate_attractive,
+         avoid_looking = original_chocolate_avoid_looking) |>
+  cor() |>
+  round_half_up(2)
+
 ```
 
 #### Poop
@@ -294,6 +328,100 @@ res <- cfa_constrained(data_exclusions,
                        items = c("original_poop_like",
                                  "original_poop_attention_capturing",
                                  "original_poop_unusual",
+                                 "original_poop_figure_out",
+                                 "original_poop_positive",
+                                 "original_poop_fixtated",
+                                 "original_poop_look_away",
+                                 "original_poop_focused",
+                                 "original_poop_negative",
+                                 "original_poop_disgusting",
+                                 "original_poop_appealing",
+                                 "original_poop_eye_catching",
+                                 "original_poop_attractive",
+                                 "original_poop_avoid_looking"), 
+                       ordered = FALSE)
+
+# global fit
+res$fit_indices |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+# item diagnostics (loadings, R2, max |std residual|, largest MI, and flags)
+res$item_diagnostics |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+data_exclusions |>
+  select(like = original_poop_like,
+         attention_capturing = original_poop_attention_capturing,
+         unusual = original_poop_unusual,
+         figure_out = original_poop_figure_out,
+         positive = original_poop_positive,
+         fixtated = original_poop_fixtated,
+         look_away = original_poop_look_away,
+         focused = original_poop_focused,
+         negative = original_poop_negative,
+         disgusting = original_poop_disgusting,
+         appealing = original_poop_appealing,
+         eye_catching = original_poop_eye_catching,
+         attractive = original_poop_attractive,
+         avoid_looking = original_poop_avoid_looking) |>
+  cor() |>
+  round_half_up(2)
+
+```
+
+### mod Original
+
+remove negative correlating item - unusual
+
+#### Chocolate
+
+```{r}
+
+res <- cfa_constrained(data_exclusions, 
+                       items = c(
+                         "original_chocolate_like",
+                         "original_chocolate_attention_capturing",
+                         #"original_chocolate_unusual",
+                         "original_chocolate_figure_out",
+                         "original_chocolate_positive",
+                         "original_chocolate_fixtated",
+                         "original_chocolate_look_away",
+                         "original_chocolate_focused",
+                         "original_chocolate_negative",
+                         "original_chocolate_disgusting",
+                         "original_chocolate_appealing",
+                         "original_chocolate_eye_catching",
+                         "original_chocolate_attractive",
+                         "original_chocolate_avoid_looking"
+                       ), 
+                       ordered = FALSE)
+
+# global fit
+res$fit_indices |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+# item diagnostics (loadings, R2, max |std residual|, largest MI, and flags)
+res$item_diagnostics |>
+  mutate_if(is.numeric, round_half_up, digits = 2) |>
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+```
+
+#### Poop
+
+```{r}
+
+res <- cfa_constrained(data_exclusions, 
+                       items = c("original_poop_like",
+                                 "original_poop_attention_capturing",
+                                 #"original_poop_unusual",
                                  "original_poop_figure_out",
                                  "original_poop_positive",
                                  "original_poop_fixtated",
@@ -347,6 +475,13 @@ res$item_diagnostics |>
   kable() |>
   kable_classic(full_width = FALSE)
 
+data_exclusions |>
+  select(pos_neg = classic_chocolate_pos_neg,
+         pleasant_unpleasant = classic_chocolate_pleasant_unpleasant,
+         good_bad = classic_chocolate_good_bad) |>
+  cor() |>
+  round_half_up(2)
+
 ```
 
 #### Poop
@@ -372,6 +507,13 @@ res$item_diagnostics |>
   mutate_if(is.numeric, round_half_up, digits = 2) |>
   kable() |>
   kable_classic(full_width = FALSE)
+
+data_exclusions |>
+  select(pos_neg = classic_poop_pos_neg,
+         pleasant_unpleasant = classic_poop_pleasant_unpleasant,
+         good_bad = classic_poop_good_bad) |>
+  cor() |>
+  round_half_up(2)
 
 ```
 
@@ -712,6 +854,54 @@ ggplot(data_predictions, aes(predicted_d)) +
   ylab("Frequency") +
   geom_vline(xintercept = res$d_rm, linetype = "dashed", color = "red") +
   theme_linedraw()
+
+```
+
+## IRT
+
+```{r fig.height=9, fig.width=15}
+
+library(mirt)
+library(psych)
+
+data_irt_choc <- data_exclusions %>% 
+  select(contains("chocolate"), -classic_chocolate, -original_chocolate)
+
+mod_1f <- mirt(data_irt_choc, 1, itemtype = "graded", SE = TRUE, verbose = FALSE)
+
+summary(mod_1f) # includes item parameters on logit scale and factor variance
+
+# irt_coefs <- coef(mod_1f, IRTpars = TRUE, simplify = TRUE)
+# irt_coefs
+# 
+# fs <- fscores(mod_1f, method = "EAP", full.scores.SE = TRUE)
+# head(fs)
+# # fs is matrix with theta and SEs in columns named "F1" and "SE.F1"
+# theta <- fs[, "F1"]
+# theta_se <- fs[, "SE.F1"]
+
+# --- Plots
+# Trace lines (category response curves) for all items
+plot(mod_1f, type = "trace", facet_items = TRUE)
+
+
+# Item information functions
+plot(mod_1f, type = "infotrace", facet_items = TRUE)
+
+
+# Test information function
+plot(mod_1f, type = "info")
+
+
+# --- Check for local dependence (Q3)
+ld <- residuals(mod_1f, type = "Q3")
+print(ld)
+
+# 
+# # --- If unidimensionality is questionable: run a 2-factor exploratory bifactor or EFA
+# # Exploratory 2-factor
+# mod_2fE <- mirt(dat_ord, 2, itemtype = "graded", SE = FALSE, verbose = FALSE, pars = "values")
+# summary(mod_2fE)
 
 ```
 
