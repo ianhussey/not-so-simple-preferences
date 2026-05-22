@@ -71,6 +71,8 @@ data_processed <- read_rds("../../data/processed/data_processed.rds") |>
          cats_legs = other_beliefs_cats_legs,
          fish_legs = other_beliefs_fish_legs)
 
+write_csv(data_processed, "../../data/processed/data_processed.csv")
+
 ```
 
 # Exclusions
@@ -92,6 +94,7 @@ data_exclusions <- data_processed |>
   filter(global_check == "passed") 
 
 write_csv(data_exclusions, "../../data/processed/data_processed_with_exclusions.csv")
+
 
 # for {effectsize} package
 data_exclusions |>

@@ -14,6 +14,7 @@ output:
 
 # TODO
 
+- effectsize functions not included below
 - could we add analysis for participants 1:N and show how the multiverse changes with additional recruitment? or should we do this for only the default analysis? 
 - another version of the function has additional forms of cohen's d with bootstrapping etc right? re-add them here.
 - change "total_completion_check" to "total_completion_time_check" throughout
